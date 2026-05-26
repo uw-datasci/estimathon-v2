@@ -24,7 +24,7 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       className={cn(
-        "antialiased",
+        "light antialiased",
         fontMono.variable,
         "font-sans",
         fontSans.variable
