@@ -18,7 +18,6 @@ export async function registerPlugins(fastify: FastifyInstance) {
   await registerHelmet(fastify)
   await registerCors(fastify)
   await registerRateLimit(fastify)
-
   // Insert new plugins here
 
   if (fastify.config.NODE_ENV !== "production") await registerSwagger(fastify)
