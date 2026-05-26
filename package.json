@@ -9,7 +9,9 @@
     "format": "turbo format",
     "typecheck": "turbo typecheck",
     "docker:api": "docker build -f docker/Dockerfile --build-arg NODE_VERSION=24 -t sample-api:latest .",
-    "docker:api:up": "docker compose -f docker/docker-compose.yml up --build api"
+    "docker:api:up": "docker compose -f docker/docker-compose.yml up --build api",
+    "pull-secrets": "node scripts/pull-secrets.js",
+    "ui:add": "node scripts/ui-add.mjs"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
@@ -22,5 +24,8 @@
   "packageManager": "pnpm@11.3.0",
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
   }
 }
