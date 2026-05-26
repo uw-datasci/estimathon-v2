@@ -1,5 +1,5 @@
 {
-  "name": "@workspace/db",
+  "name": "@estimathon/db",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -8,10 +8,15 @@
     "format": "prettier --write \"**/*.ts\"",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0"
+  },
   "devDependencies": {
+    "db-migrate": "^0.11.14",
+    "db-migrate-pg": "^1.5.2",
     "@types/node": "^25.1.0",
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
+    "@estimathon/eslint-config": "workspace:*",
+    "@estimathon/typescript-config": "workspace:*",
     "eslint": "^9.39.2",
     "typescript": "^5.9.3"
   },

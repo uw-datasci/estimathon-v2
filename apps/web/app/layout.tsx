@@ -1,7 +1,7 @@
-import "@workspace/ui/globals.css"
+import "@estimathon/ui/globals.css"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@workspace/ui/lib/utils"
+import { cn } from "@estimathon/ui/lib/utils"
 import { Analytics } from "@vercel/analytics/next"
 
 const fontSans = Geist({

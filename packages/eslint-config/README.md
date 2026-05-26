@@ -1,3 +1,3 @@
-# `@workspace/eslint-config`
+# `@estimathon/eslint-config`
 
 Shared eslint configuration for the workspace.

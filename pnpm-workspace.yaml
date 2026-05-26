@@ -3,6 +3,8 @@ packages:
   - "packages/*"
 injectWorkspacePackages: true
 allowBuilds:
+  cpu-features: false
   esbuild: true
   msw: false
   sharp: true
+  ssh2: false

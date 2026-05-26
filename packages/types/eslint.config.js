@@ -1,3 +1,3 @@
 /** @type {import("eslint").Linter.Config} */
 
-export { config as default } from "@workspace/eslint-config/base"
+export { config as default } from "@estimathon/eslint-config/base"

@@ -1,5 +1,5 @@
 {
-  "extends": "@workspace/typescript-config/base.json",
+  "extends": "@estimathon/typescript-config/base.json",
   "compilerOptions": {
     "lib": ["ES2022"],
     "module": "ESNext",

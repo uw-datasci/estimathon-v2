@@ -1,3 +1,3 @@
-# `@workspace/typescript-config`
+# `@estimathon/typescript-config`
 
 Shared typescript configuration for the workspace.

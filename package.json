@@ -11,11 +11,16 @@
     "docker:api": "docker build -f docker/Dockerfile --build-arg NODE_VERSION=24 -t sample-api:latest .",
     "docker:api:up": "docker compose -f docker/docker-compose.yml up --build api",
     "pull-secrets": "node scripts/pull-secrets.js",
-    "ui:add": "node scripts/ui-add.mjs"
+    "ui:add": "node scripts/ui-add.mjs",
+    "migrate": "node scripts/migrate.js up",
+    "migrate:down": "node scripts/migrate.js down",
+    "migrate:reset": "node scripts/migrate.js reset",
+    "migrate:check": "node scripts/migrate.js check",
+    "migrate:create": "node scripts/migrate.js create"
   },
   "devDependencies": {
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
+    "@estimathon/eslint-config": "workspace:*",
+    "@estimathon/typescript-config": "workspace:*",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "turbo": "^2.8.17",
