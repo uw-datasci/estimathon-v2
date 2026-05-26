@@ -1,4 +1,4 @@
-import "server-only";
+import "server-only"
 
 /**
  * Server-only environment variables.
@@ -11,13 +11,12 @@ import "server-only";
  */
 
 function requireEnv(name: string): string {
-  const raw = process.env[name]?.trim();
-  if (!raw) throw new Error(`Missing required environment variable: ${name}`);
+  const raw = process.env[name]?.trim()
+  if (!raw) throw new Error(`Missing required environment variable: ${name}`)
 
-  return raw;
+  return raw
 }
 
 export const serverConfig = {
-  databaseUrl: requireEnv("DATABASE_URL"),
-  // apiSecret: requireEnv("API_SECRET"),
-} as const;
+  databaseUrl: requireEnv("API_URL"),
+} as const
