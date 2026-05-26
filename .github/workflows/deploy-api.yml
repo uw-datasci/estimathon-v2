@@ -1,0 +1,71 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 24
+  PNPM_VERSION: 11.3.0
+  INFISICAL_PROJECT_SLUG: uwdsc-54e-y
+  INFISICAL_API_PATH: <insert-path-here> # TODO: Update this value
+
+jobs:
+  setup:
+    name: Setup Variables
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ env.NODE_VERSION }}
+      pnpm-version: ${{ env.PNPM_VERSION }}
+      infisical-project-slug: ${{ env.INFISICAL_PROJECT_SLUG }}
+      infisical-api-path: ${{ env.INFISICAL_API_PATH }}
+      has-render-secret: ${{ steps.render.outputs.has-render-secret }}
+    steps:
+      - name: Detect Render secret
+        id: render
+        env:
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          if [ -n "$RENDER_SERVICE_ID" ]; then
+            echo "has-render-secret=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-render-secret=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Output variables
+        run: echo "Variables mapped to outputs."
+
+  build-docker:
+    name: Build Docker Image
+    needs: setup
+    uses: uw-datasci/nexus-workflows/.github/workflows/build-docker.yml@v4
+    with:
+      node-version: ${{ needs.setup.outputs.node-version }}
+      pnpm-version: ${{ needs.setup.outputs.pnpm-version }}
+      infisical-project-slug: ${{ needs.setup.outputs.infisical-project-slug }}
+      infisical-secret-path: ${{ needs.setup.outputs.infisical-api-path }}
+      dockerfile: docker/Dockerfile
+      docker-context: "."
+    secrets:
+      INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+      INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+
+  deploy-render:
+    name: Deploy to Render
+    needs: [setup, build-docker]
+    if: needs.setup.outputs.has-render-secret == 'true'
+    uses: uw-datasci/nexus-workflows/.github/workflows/deploy-render.yml@v4
+    with:
+      ref: ${{ github.sha }}
+      service-label: API
+      clear-cache: false
+      wait-deploy: true
+      github-deployment: false
+      deployment-environment: production
+    secrets:
+      RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}

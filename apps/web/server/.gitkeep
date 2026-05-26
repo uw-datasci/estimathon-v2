@@ -1,0 +1,82 @@
+# Server
+
+This folder holds server-side business logic and data access. Organize code by **domain** (feature or bounded context), not by technical layer.
+
+## Directory layout
+
+Each domain gets its own folder. Inside that folder, keep a **service** (business logic) and a **repository** (database / external data access):
+
+```
+server/
+├── users/
+│   ├── users.service.ts
+│   └── users.repository.ts
+├── products/
+│   ├── products.service.ts
+│   └── products.repository.ts
+└── orders/
+    ├── orders.service.ts
+    └── orders.repository.ts
+```
+
+Add new domains by creating a folder and the two files above. Remove this `.gitkeep` once the folder contains real modules.
+
+## Naming conventions
+
+| File | Pattern | Example |
+|------|---------|---------|
+| Service | `{domain}.service.ts` | `users/users.service.ts` |
+| Repository | `{domain}.repository.ts` | `users/users.repository.ts` |
+| Folder | Singular or plural domain name (pick one and stay consistent) | `users/` or `user/` |
+
+## Responsibilities
+
+### `{domain}.repository.ts`
+
+- Talks to the database, ORM, or other persistence/API layer.
+- Exposes narrow data operations: `findById`, `create`, `update`, `delete`, queries.
+- No business rules, validation beyond data shape, or orchestration across domains.
+- Returns domain records or primitives; avoid leaking framework types when possible.
+
+### `{domain}.service.ts`
+
+- Implements business logic and use cases for that domain.
+- Calls its own repository (and optionally other domains’ **services**, not their repositories).
+- Handles validation, authorization checks, transactions, and mapping to DTOs.
+- What API routes, Server Actions, and Server Components should call.
+
+## Example
+
+```ts
+// server/users/users.repository.ts
+export async function findUserById(id: string) {
+  // database query
+}
+
+// server/users/users.service.ts
+import * as usersRepo from "./users.repository";
+
+export async function getUserProfile(id: string) {
+  const user = await usersRepo.findUserById(id);
+  if (!user) throw new Error("User not found");
+  // business logic, shaping, permissions
+  return user;
+}
+```
+
+## Usage from the app
+
+Import services (not repositories) from route handlers, Server Actions, and Server Components:
+
+```ts
+import { getUserProfile } from "@/server/users/users.service";
+```
+
+Keep repositories internal to their domain folder unless you have a shared low-level data module (e.g. connection pooling in `config/`).
+
+## Guidelines
+
+- One domain per folder; do not split services and repositories into top-level `services/` and `repositories/` trees.
+- Cross-domain work: depend on another domain’s **service**, not its repository.
+- Shared types belong in `types/` at the project root; domain-only types can live next to the domain files if small.
+- Server configuration and env wiring live in `config/`, not inside domain folders.
