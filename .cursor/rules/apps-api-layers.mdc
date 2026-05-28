@@ -12,4 +12,4 @@ alwaysApply: false
 - **Repository** (`*.repository.ts`): data and external I/O; return types from `*.types.ts`.
 - **Schema** (`*.schema.ts`): Fastify/OpenAPI response and request schemas for Swagger.
 
-New features: add `src/modules/<feature>/` with the suffixes above, then register routes under `src/routes/`. Plugins stay in `src/plugins/` (`index.ts` order matters).
+New features: add `src/modules/<feature>/` with the suffixes above, then register routes under `src/routes/`. Route-backed features belong in `modules/` even when they omit a layer (e.g. no repository). Pure helpers with no route (e.g. scoring math) go in `src/utils/`. Plugins stay in `src/plugins/` (`index.ts` order matters).

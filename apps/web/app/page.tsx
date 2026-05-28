@@ -1,16 +1,25 @@
-import { Button } from "@estimathon/ui/components/button"
+import { LandingHero } from "@/components/marketing/landing-hero"
+import { proxyApiJson } from "@/lib/api/proxy"
+import { redirectAuthenticatedUserFromLanding } from "@/lib/auth/landing-redirect"
+import { buildLoginHref } from "@/lib/auth/login-href"
+import { getAuthenticatedUser } from "@/lib/auth/session"
+import type { Event, MeResponse } from "@estimathon/types"
 
-export default function Page() {
-  return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-      </div>
-    </div>
+export const dynamic = "force-dynamic"
+
+export default async function LandingPage() {
+  const user = await getAuthenticatedUser()
+  const activeResult = await proxyApiJson<{ event: Event | null }>(
+    "/events/active"
   )
+  const event = activeResult.data?.event ?? null
+
+  if (user) {
+    const me = await proxyApiJson<MeResponse>("/me")
+    redirectAuthenticatedUserFromLanding(me.data)
+  }
+
+  const loginHref = await buildLoginHref()
+
+  return <LandingHero event={event} isLoggedIn={!!user} loginHref={loginHref} />
 }

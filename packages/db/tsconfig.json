@@ -2,6 +2,8 @@
   "extends": "@estimathon/typescript-config/base.json",
   "compilerOptions": {
     "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "paths": {
       "@estimathon/db/*": ["./src/*"]
     },

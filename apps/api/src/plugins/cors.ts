@@ -22,5 +22,6 @@ function resolveCorsOrigin(value: string): boolean | string[] {
 export async function registerCors(fastify: FastifyInstance) {
   await fastify.register(cors, {
     origin: resolveCorsOrigin(fastify.config.CORS_ORIGIN),
+    credentials: true,
   })
 }

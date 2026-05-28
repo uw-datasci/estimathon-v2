@@ -7,8 +7,23 @@ import { registerPlugins } from "./plugins"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+const isProduction = process.env.NODE_ENV === "production"
+
 export async function buildServer() {
-  const server = Fastify({ logger: true })
+  const server = Fastify({
+    logger: isProduction
+      ? true
+      : {
+          transport: {
+            target: "pino-pretty",
+            options: {
+              colorize: true,
+              translateTime: "HH:MM:ss",
+              ignore: "pid,hostname",
+            },
+          },
+        },
+  })
 
   await registerPlugins(server)
 

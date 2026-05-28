@@ -10,8 +10,16 @@ const __dirname = dirname(__filename)
 dotenv.config()
 
 const APPS = [
-  { name: "web", infisicalPath: process.env.WEB_INFISICAL_PATH },
-  { name: "api", infisicalPath: process.env.API_INFISICAL_PATH },
+  {
+    name: "web",
+    infisicalPath: process.env.WEB_INFISICAL_PATH,
+    envFile: ".env.local",
+  },
+  {
+    name: "api",
+    infisicalPath: process.env.API_INFISICAL_PATH,
+    envFile: ".env",
+  },
 ].filter((app) => {
   if (!app.infisicalPath) {
     console.warn(
@@ -98,9 +106,9 @@ try {
   const projectFlag = projectId ? `--projectId="${projectId}"` : ""
 
   // Sync app secrets
-  APPS.forEach(({ name, infisicalPath }) => {
+  APPS.forEach(({ name, infisicalPath, envFile }) => {
     const targetDir = join(rootDir, "apps", name)
-    const targetFile = join(targetDir, ".env.local")
+    const targetFile = join(targetDir, envFile)
 
     if (!existsSync(targetDir))
       return console.warn(`⚠️  Skipping ${name} (folder missing)`)
@@ -112,7 +120,7 @@ try {
     )
 
     writeFileSync(targetFile, secrets)
-    console.log(`   ✅ Updated .env.local`)
+    console.log(`   ✅ Updated ${envFile}`)
   })
 
   // Sync package secrets
