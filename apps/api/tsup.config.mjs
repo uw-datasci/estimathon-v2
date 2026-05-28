@@ -8,6 +8,7 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   bundle: true,
+  noExternal: [/^@estimathon\//],
   // Shared modules imported by more than one route entry emit once under dist/chunks/
   splitting: true,
   treeshake: true,
