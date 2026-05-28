@@ -57,15 +57,7 @@ jobs:
   deploy-render:
     name: Deploy to Render
     needs: [setup, build-docker]
-    if: needs.setup.outputs.has-render-secret == 'true'
-    uses: uw-datasci/nexus-workflows/.github/workflows/deploy-render.yml@v4
-    with:
-      ref: ${{ github.sha }}
-      service-label: API
-      clear-cache: false
-      wait-deploy: true
-      github-deployment: false
-      deployment-environment: production
-    secrets:
-      RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
-      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        run: curl -fsSL -X POST "${{ secrets.DEPLOY_HOOK_URL }}"
