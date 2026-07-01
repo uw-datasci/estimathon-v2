@@ -1,6 +1,7 @@
 import "server-only"
 
-import { NextResponse } from "next/server"
+import { RaftResponse } from "@uw-datasci/raft"
+import type { NextResponse } from "next/server"
 import { proxyApi } from "./proxy"
 
 /**
@@ -28,8 +29,5 @@ export async function forward(
   })
 
   const text = await upstream.text()
-  return new NextResponse(text || null, {
-    status: upstream.status,
-    headers: { "Content-Type": "application/json" },
-  })
+  return RaftResponse.text(text, "application/json", upstream.status)
 }

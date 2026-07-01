@@ -1,5 +1,6 @@
+import { withRaft } from "@uw-datasci/raft"
 import { forward } from "@/lib/api/forward"
 
-export async function GET(request: Request) {
+export const GET = withRaft(async (request) => {
   return forward(request, "/events/active")
-}
+})
