@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.6
 ARG NODE_VERSION=24
 
 FROM node:${NODE_VERSION}-alpine AS base
@@ -7,12 +6,11 @@ WORKDIR /app
 
 # --- Install workspace deps for `api` only ---
 FROM base AS deps
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/
 # Workspace package manifests (api may depend on shared packages later)
 COPY packages ./packages
-RUN --mount=type=secret,id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN \
-    pnpm install --frozen-lockfile --filter api...
+RUN pnpm install --frozen-lockfile --filter api...
 
 # --- Compile ---
 FROM deps AS build
