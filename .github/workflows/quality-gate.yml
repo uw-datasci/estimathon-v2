@@ -60,7 +60,7 @@ jobs:
       pnpm-version: ${{ needs.setup.outputs.pnpm-version }}
       build-command: pnpm exec turbo build --filter=web...
       infisical-project-slug: ${{ needs.setup.outputs.infisical-project-slug }}
-      infisical-web-path: ${{ needs.setup.outputs.infisical-web-path }}
+      infisical-secret-path: ${{ needs.setup.outputs.infisical-web-path }}
     secrets:
       INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
       INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
@@ -79,7 +79,7 @@ jobs:
       pnpm-version: ${{ needs.setup.outputs.pnpm-version }}
       build-command: pnpm exec turbo build --filter=api...
       infisical-project-slug: ${{ needs.setup.outputs.infisical-project-slug }}
-      infisical-api-path: ${{ needs.setup.outputs.infisical-api-path }}
+      infisical-secret-path: ${{ needs.setup.outputs.infisical-api-path }}
     secrets:
       INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
       INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
@@ -99,4 +99,4 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           code-quality-result: ${{ needs.code-quality.result }}
-          build-result: ${{ needs.build-web.result == 'success' && needs.build-admin.result == 'success' && 'success' || 'failure' }}
+          build-result: ${{ needs.build-web.result == 'success' && needs.build-api.result == 'success' && 'success' || 'failure' }}
