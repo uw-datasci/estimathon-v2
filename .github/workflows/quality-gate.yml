@@ -35,6 +35,9 @@ jobs:
   code-quality:
     name: Code Quality
     needs: setup
+    permissions:
+      contents: read
+      packages: read
     uses: uw-datasci/nexus-workflows/.github/workflows/quality-gate.yml@v4
     with:
       node-version: ${{ needs.setup.outputs.node-version }}
@@ -48,6 +51,9 @@ jobs:
   build-web:
     name: Build - Web
     needs: [setup, code-quality]
+    permissions:
+      contents: read
+      packages: read
     uses: uw-datasci/nexus-workflows/.github/workflows/build-node.yml@v4
     with:
       node-version: ${{ needs.setup.outputs.node-version }}
@@ -64,6 +70,9 @@ jobs:
   build-api:
     name: Build - API
     needs: [setup, code-quality]
+    permissions:
+      contents: read
+      packages: read
     uses: uw-datasci/nexus-workflows/.github/workflows/build-node.yml@v4
     with:
       node-version: ${{ needs.setup.outputs.node-version }}

@@ -37,6 +37,9 @@ jobs:
   migrate:
     name: Run Database Migrations
     needs: setup
+    permissions:
+      contents: read
+      packages: read
     uses: uw-datasci/nexus-workflows/.github/workflows/migrate-db.yml@v4
     with:
       node-version: ${{ needs.setup.outputs.node-version }}

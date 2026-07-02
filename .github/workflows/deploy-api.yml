@@ -53,6 +53,9 @@ jobs:
   build-docker:
     name: Build Docker Image
     needs: setup
+    permissions:
+      contents: read
+      packages: read
     uses: uw-datasci/nexus-workflows/.github/workflows/build-docker.yml@v4
     with:
       node-version: ${{ needs.setup.outputs.node-version }}
