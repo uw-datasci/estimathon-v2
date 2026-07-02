@@ -55,7 +55,7 @@ jobs:
     needs: setup
     permissions:
       contents: read
-      packages: read
+      packages: write
     uses: uw-datasci/nexus-workflows/.github/workflows/build-docker.yml@v4
     with:
       node-version: ${{ needs.setup.outputs.node-version }}
