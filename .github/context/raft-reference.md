@@ -11,12 +11,12 @@
 
 1. **`RaftResponse`** - standardized `NextResponse` builders (status codes + body shapes).
 2. **`withRaft`** - a one-line route-handler wrapper that catches unhandled errors,
-   quarantines them to Postgres + Sentry, and returns a clean `500`.
+   quarantines them to Postgres, and returns a clean `500`.
 3. **`RaftClient`** - the singleton that performs the actual error reporting.
 
 Environment-aware: in `development` errors are printed to the console; in
-`production` they are written to the `raft.error_quarantine` Postgres table **and**
-captured in Sentry, with both awaited so serverless containers cannot truncate them.
+`production` they are written to the `raft.error_quarantine` Postgres table,
+awaited so serverless containers cannot truncate the write.
 
 ## Installation (consumer apps)
 
@@ -37,12 +37,8 @@ pnpm add @uw-datasci/raft
 | Variable            | Required | Purpose                                                          |
 | ------------------- | -------- | ---------------------------------------------------------------- |
 | `RAFT_APP_NAME`     | yes      | Logical app name stored on each quarantine row.                  |
-| `NODE_ENV`          | yes      | `production` enables the Postgres + Sentry sinks.                |
+| `NODE_ENV`          | yes      | `production` enables the Postgres sink.                          |
 | `RAFT_DATABASE_URL` | prod     | Postgres DSN. Apply `migrations/0001_init_raft_schema.sql` once. |
-| `SENTRY_DSN`        | optional | Enables the Sentry sink. Requires `@sentry/node` installed.      |
-
-`@sentry/node` is an **optional peer dependency** - install it only if you want
-the Sentry sink. Postgres reporting works without it.
 
 ## Public API signatures
 
