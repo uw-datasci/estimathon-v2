@@ -8,9 +8,7 @@ export class RealtimeController {
 
   async stream(request: FastifyRequest, reply: FastifyReply) {
     const { id: eventId } = request.params as { id: string }
-    if (!request.user) {
-      return reply.code(401).send({ error: "Unauthenticated" })
-    }
+    if (!request.user) return reply.code(401).send({ error: "Unauthenticated" })
 
     // Hijack skips Fastify onSend hooks, so @fastify/cors never writes headers.
     // EventSource is cross-origin from the web app and needs them on the raw response.
