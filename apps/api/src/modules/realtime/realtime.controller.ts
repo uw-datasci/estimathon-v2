@@ -1,5 +1,4 @@
 import type { FastifyReply, FastifyRequest } from "fastify"
-import { isOriginAllowed } from "../../plugins/cors"
 import type { EventHub } from "./event-hub"
 
 export class RealtimeController {
@@ -17,7 +16,7 @@ export class RealtimeController {
     // EventSource is cross-origin from the web app and needs them on the raw response.
     reply.hijack()
     const origin = request.headers.origin
-    if (isOriginAllowed(origin, request.server.config.CORS_ORIGIN) && origin) {
+    if (origin === request.server.config.CORS_ORIGIN) {
       reply.raw.setHeader("Access-Control-Allow-Origin", origin)
       reply.raw.setHeader("Access-Control-Allow-Credentials", "true")
       reply.raw.setHeader("Vary", "Origin")
