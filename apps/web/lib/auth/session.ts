@@ -3,7 +3,7 @@ import "server-only"
 import { redirect } from "next/navigation"
 import { clientConfig } from "@/config/client"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
-import type { AuthenticatedUser } from "@estimathon/types"
+import { isStaffRole, type AuthenticatedUser } from "@estimathon/types"
 
 /**
  * Returns the access token of the current session, or null if no valid
@@ -25,10 +25,8 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
   const supabase = await createSupabaseServerClient()
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) return null
-  const role =
-    (data.user.app_metadata?.role as string | undefined) === "admin"
-      ? "admin"
-      : "user"
+  const raw = data.user.app_metadata?.role as string | undefined
+  const role = raw === "admin" || raw === "exec" ? raw : "user"
   return {
     id: data.user.id,
     email: data.user.email ?? null,
@@ -53,11 +51,13 @@ export async function requireSession(
 }
 
 /**
- * Like requireSession but additionally requires `app_metadata.role = admin`.
- * Redirects to /unauthorized for non-admins.
+ * Like requireSession but additionally requires `app_metadata.role` of
+ * `admin` or `exec`. Redirects to /unauthorized otherwise.
  */
-export async function requireAdmin(returnTo?: string): Promise<AuthenticatedUser> {
+export async function requireAdmin(
+  returnTo?: string
+): Promise<AuthenticatedUser> {
   const user = await requireSession(returnTo)
-  if (user.role !== "admin") redirect("/unauthorized")
+  if (!isStaffRole(user.role)) redirect("/unauthorized")
   return user
 }

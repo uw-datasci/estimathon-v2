@@ -11,7 +11,7 @@
  * Decorators:
  *   fastify.requireAuth   - preHandler that 401s on missing/invalid token
  *   fastify.requireAdmin  - preHandler that 401s without a token and 403s
- *                            unless `app_metadata.role === 'admin'`
+ *                            unless `app_metadata.role` is `admin` or `exec`
  *
  * Request augmentation:
  *   request.user          - { id, email, role } when a valid token is present
@@ -19,7 +19,11 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify"
 import { createRemoteJWKSet, jwtVerify } from "jose"
 import type { JWTPayload } from "jose"
-import type { AuthenticatedUser, UserRole } from "@estimathon/types"
+import {
+  isStaffRole,
+  type AuthenticatedUser,
+  type UserRole,
+} from "@estimathon/types"
 
 interface SupabaseJWTPayload extends JWTPayload {
   sub: string
@@ -56,8 +60,8 @@ function extractToken(request: FastifyRequest): string | null {
 }
 
 function payloadToUser(payload: SupabaseJWTPayload): AuthenticatedUser {
-  const role: UserRole =
-    payload.app_metadata?.role === "admin" ? "admin" : "user"
+  const raw = payload.app_metadata?.role
+  const role: UserRole = raw === "admin" || raw === "exec" ? raw : "user"
   return {
     id: payload.sub,
     email: payload.email ?? null,
@@ -147,7 +151,7 @@ export async function registerAuth(fastify: FastifyInstance) {
         await reply.code(401).send({ error: "Unauthenticated" })
         return
       }
-      if (request.user.role !== "admin") {
+      if (!isStaffRole(request.user.role)) {
         await reply.code(403).send({ error: "Forbidden" })
       }
     }

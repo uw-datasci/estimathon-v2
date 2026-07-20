@@ -40,7 +40,7 @@ export const meSchema = {
             properties: {
               id: { type: "string" },
               email: { type: ["string", "null"] },
-              role: { type: "string", enum: ["admin", "user"] },
+              role: { type: "string", enum: ["admin", "exec", "user"] },
             },
           },
           team: { ...teamSchema, nullable: true },

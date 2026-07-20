@@ -1,4 +1,9 @@
-export type UserRole = "admin" | "user"
+export type UserRole = "admin" | "exec" | "user"
+
+/** Roles that can access admin / staff-protected surfaces. */
+export function isStaffRole(role: UserRole): boolean {
+  return role === "admin" || role === "exec"
+}
 
 export interface AuthenticatedUser {
   /** Supabase auth.uid() */
