@@ -23,7 +23,6 @@ export class LeaderboardService {
     const [teamList, allQuestions] = await Promise.all([
       this.teams.listForEvent(eventId),
       this.questions.listForEvent(eventId, {
-        releasedOnly: false,
         includeAnswer: true,
       }),
     ])

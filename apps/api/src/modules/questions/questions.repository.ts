@@ -8,7 +8,6 @@ function rowToQuestion(row: QuestionRow, includeAnswer: boolean): Question {
     eventId: row.event_id,
     position: row.position,
     prompt: row.prompt,
-    releasedAt: row.released_at,
     createdAt: row.created_at,
   }
   if (includeAnswer) base.answer = Number(row.answer)
@@ -26,13 +25,10 @@ export class QuestionsRepository {
 
   async listForEvent(
     eventId: string,
-    options: { includeAnswer: boolean; releasedOnly: boolean }
+    options: { includeAnswer: boolean }
   ): Promise<Question[]> {
-    const where = options.releasedOnly
-      ? `where event_id = $1 and released_at is not null`
-      : `where event_id = $1`
     const rows = await query<QuestionRow>(
-      `select * from questions ${where} order by position asc`,
+      `select * from questions where event_id = $1 order by position asc`,
       [eventId]
     )
     return rows.map((r) => rowToQuestion(r, options.includeAnswer))
@@ -68,7 +64,6 @@ export class QuestionsRepository {
       prompt?: string
       answer?: number
       position?: number
-      releasedAt?: string | null
     }
   ): Promise<Question | null> {
     const sets: string[] = []
@@ -80,7 +75,6 @@ export class QuestionsRepository {
     if (input.prompt !== undefined) push("prompt", input.prompt)
     if (input.answer !== undefined) push("answer", input.answer)
     if (input.position !== undefined) push("position", input.position)
-    if (input.releasedAt !== undefined) push("released_at", input.releasedAt)
     if (sets.length === 0) return this.findById(id)
 
     params.push(id)

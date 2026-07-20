@@ -136,7 +136,6 @@ export class TeamsService {
 
     const teams = await this.repository.listForEvent(eventId)
     const allQuestions = await this.questions.listForEvent(eventId, {
-      releasedOnly: false,
       includeAnswer: true,
     })
     const questionInputs = allQuestions.map((q) => ({

@@ -8,7 +8,6 @@ export interface UpdateQuestionInput {
   prompt?: string
   answer?: number
   position?: number
-  released?: boolean
 }
 
 export interface QuestionRow {
@@ -17,6 +16,5 @@ export interface QuestionRow {
   position: number
   prompt: string
   answer: string
-  released_at: string | null
   created_at: string
 }

@@ -58,12 +58,9 @@ export class SubmissionsService {
       throw new HttpError(400, "Invalid range")
     }
 
-    // Verify question is released
     const question = await this.questions.findById(input.questionId)
     if (question?.eventId !== event.id)
       throw new HttpError(404, "Question not found")
-    if (!question.releasedAt)
-      throw new HttpError(400, "Question isn't released yet")
 
     const submission = await this.submissions.insert({
       teamId: team.id,
@@ -134,7 +131,6 @@ export class SubmissionsService {
     const [submissions, allQuestions, event] = await Promise.all([
       this.submissions.listForTeam(teamId),
       this.questions.listForEvent(eventId, {
-        releasedOnly: false,
         includeAnswer: true,
       }),
       this.events.findById(eventId),

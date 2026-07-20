@@ -9,18 +9,17 @@ import { QuestionsService } from "../modules/questions/questions.service"
 const questionsRoutes: FastifyPluginAsync = async (fastify) => {
   const questionsRepo = new QuestionsRepository()
   const eventsRepo = new EventsRepository()
-  const service = new QuestionsService(
-    questionsRepo,
-    eventsRepo,
-    fastify.eventHub
-  )
+  const service = new QuestionsService(questionsRepo, eventsRepo)
   const controller = new QuestionsController(service)
 
   // Player
   fastify.get(
     "/events/:id/questions",
-    { schema: questionsSchema.listReleased, preHandler: fastify.requireAuth },
-    controller.listReleased
+    {
+      schema: questionsSchema.listForPlayers,
+      preHandler: fastify.requireAuth,
+    },
+    controller.listForPlayers
   )
 
   // Admin

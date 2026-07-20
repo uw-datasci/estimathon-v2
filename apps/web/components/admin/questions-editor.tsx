@@ -1,13 +1,12 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Plus, Trash2, Eye, EyeOff, Check, X } from "lucide-react"
+import { Plus, Trash2, Check, X } from "lucide-react"
 import { Button } from "@estimathon/ui/components/button"
 import { Input } from "@estimathon/ui/components/input"
 import { Textarea } from "@estimathon/ui/components/textarea"
-import { Badge } from "@estimathon/ui/components/badge"
 import {
   Card,
   CardContent,
@@ -26,58 +25,12 @@ interface DraftQuestion {
   prompt: string
   answer: string
   position: number
-  releasedAt: string | null
 }
 
 export function QuestionsEditor({ eventId, questions: initial }: Props) {
   const router = useRouter()
   const [draft, setDraft] = useState<DraftQuestion | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [bulkBusy, setBulkBusy] = useState(false)
-
-  const { releasableCount, hideableCount } = useMemo(() => {
-    let releasable = 0
-    let hideable = 0
-    for (const q of initial) {
-      if (q.releasedAt) hideable++
-      else releasable++
-    }
-    return { releasableCount: releasable, hideableCount: hideable }
-  }, [initial])
-
-  async function setReleasedForAll(released: boolean) {
-    const targets = initial.filter((q) => !!q.releasedAt !== released)
-    if (targets.length === 0) return
-    setBulkBusy(true)
-    try {
-      const results = await Promise.all(
-        targets.map((q) =>
-          fetch(`/api/admin/questions/${q.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ released }),
-          })
-        )
-      )
-      const failures = results.filter((r) => !r.ok).length
-      if (failures > 0) {
-        toast.error(
-          `${failures} of ${targets.length} failed — refresh and try again`
-        )
-      } else {
-        toast.success(
-          released
-            ? `Released ${targets.length} question${targets.length === 1 ? "" : "s"}`
-            : `Hid ${targets.length} question${targets.length === 1 ? "" : "s"}`
-        )
-      }
-      router.refresh()
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed")
-    } finally {
-      setBulkBusy(false)
-    }
-  }
 
   function startCreate() {
     const last = initial[initial.length - 1]
@@ -87,7 +40,6 @@ export function QuestionsEditor({ eventId, questions: initial }: Props) {
       prompt: "",
       answer: "",
       position: nextPosition,
-      releasedAt: null,
     })
   }
 
@@ -127,7 +79,7 @@ export function QuestionsEditor({ eventId, questions: initial }: Props) {
 
   async function patchQuestion(
     id: string,
-    patch: { prompt?: string; answer?: number; released?: boolean }
+    patch: { prompt?: string; answer?: number }
   ) {
     setBusyId(id)
     try {
@@ -165,37 +117,12 @@ export function QuestionsEditor({ eventId, questions: initial }: Props) {
 
   return (
     <div className="grid gap-3">
-      {initial.length > 0 && (
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setReleasedForAll(true)}
-            disabled={bulkBusy || releasableCount === 0}
-          >
-            <Eye />
-            Release all{releasableCount > 0 ? ` (${releasableCount})` : ""}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setReleasedForAll(false)}
-            disabled={bulkBusy || hideableCount === 0}
-          >
-            <EyeOff />
-            Hide all{hideableCount > 0 ? ` (${hideableCount})` : ""}
-          </Button>
-        </div>
-      )}
       {initial.map((q) => (
         <QuestionCard
           key={q.id}
           question={q}
-          busy={busyId === q.id || bulkBusy}
+          busy={busyId === q.id}
           onSave={(patch) => patchQuestion(q.id, patch)}
-          onToggleRelease={() =>
-            patchQuestion(q.id, { released: !q.releasedAt })
-          }
           onDelete={() => deleteQuestion(q.id)}
         />
       ))}
@@ -261,20 +188,16 @@ function QuestionCard({
   question,
   busy,
   onSave,
-  onToggleRelease,
   onDelete,
 }: {
   question: Question
   busy: boolean
   onSave: (patch: { prompt?: string; answer?: number }) => void
-  onToggleRelease: () => void
   onDelete: () => void
 }) {
   const [editing, setEditing] = useState(false)
   const [prompt, setPrompt] = useState(question.prompt)
   const [answer, setAnswer] = useState(String(question.answer ?? ""))
-
-  const released = !!question.releasedAt
 
   function save() {
     const patch: { prompt?: string; answer?: number } = {}
@@ -291,20 +214,8 @@ function QuestionCard({
       <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <span className="text-muted-foreground">#{question.position}</span>
-          <Badge variant={released ? "default" : "outline"}>
-            {released ? "Released" : "Locked"}
-          </Badge>
         </CardTitle>
         <div className="flex gap-1">
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            onClick={onToggleRelease}
-            disabled={busy}
-            aria-label={released ? "Lock" : "Release"}
-          >
-            {released ? <EyeOff /> : <Eye />}
-          </Button>
           <Button
             size="icon-sm"
             variant="ghost"

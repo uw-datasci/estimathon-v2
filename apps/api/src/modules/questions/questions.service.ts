@@ -1,7 +1,6 @@
 import type { Question } from "@estimathon/types"
 import { HttpError } from "../events/events.service"
 import { EventsRepository } from "../events/events.repository"
-import type { EventHub } from "../realtime/event-hub"
 import { QuestionsRepository } from "./questions.repository"
 import type {
   CreateQuestionInput,
@@ -11,16 +10,14 @@ import type {
 export class QuestionsService {
   constructor(
     private readonly repository: QuestionsRepository,
-    private readonly events: EventsRepository,
-    private readonly hub?: EventHub
+    private readonly events: EventsRepository
   ) {}
 
   /**
-   * Player-visible list: released only, answer stripped.
+   * Player-visible list: all questions for the event, answer stripped.
    */
-  async listReleased(eventId: string): Promise<Question[]> {
+  async listForPlayers(eventId: string): Promise<Question[]> {
     return this.repository.listForEvent(eventId, {
-      releasedOnly: true,
       includeAnswer: false,
     })
   }
@@ -30,7 +27,6 @@ export class QuestionsService {
    */
   async listAll(eventId: string): Promise<Question[]> {
     return this.repository.listForEvent(eventId, {
-      releasedOnly: false,
       includeAnswer: true,
     })
   }
@@ -52,30 +48,12 @@ export class QuestionsService {
   }
 
   async update(id: string, input: UpdateQuestionInput): Promise<Question> {
-    let releasedAt: string | null | undefined
-    if (input.released === undefined) {
-      releasedAt = undefined
-    } else if (input.released) {
-      releasedAt = new Date().toISOString()
-    } else {
-      releasedAt = null
-    }
-
     const updated = await this.repository.update(id, {
       prompt: input.prompt?.trim(),
       answer: input.answer,
       position: input.position,
-      releasedAt,
     })
     if (!updated) throw new HttpError(404, "Question not found")
-    if (input.released === true && updated.releasedAt) {
-      this.hub?.publish(updated.eventId, {
-        type: "question_released",
-        eventId: updated.eventId,
-        questionId: updated.id,
-        position: updated.position,
-      })
-    }
     return updated
   }
 

@@ -24,17 +24,17 @@ async function handle<T>(
 
 export class QuestionsController {
   constructor(private readonly service: QuestionsService) {
-    this.listReleased = this.listReleased.bind(this)
+    this.listForPlayers = this.listForPlayers.bind(this)
     this.listAll = this.listAll.bind(this)
     this.create = this.create.bind(this)
     this.update = this.update.bind(this)
     this.delete = this.delete.bind(this)
   }
 
-  async listReleased(request: FastifyRequest, reply: FastifyReply) {
+  async listForPlayers(request: FastifyRequest, reply: FastifyReply) {
     const { id } = request.params as { id: string }
     return handle(reply, async () => {
-      const questions = await this.service.listReleased(id)
+      const questions = await this.service.listForPlayers(id)
       return { questions }
     })
   }

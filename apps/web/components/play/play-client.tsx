@@ -148,7 +148,7 @@ export function PlayClient({
       <div className="grid gap-3">
         {questions.length === 0 ? (
           <div className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
-            No questions have been released yet. Hang tight.
+            No questions yet. Hang tight.
           </div>
         ) : (
           questions.map((q) => (

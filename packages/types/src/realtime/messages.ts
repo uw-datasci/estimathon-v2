@@ -19,12 +19,6 @@ export type ServerMessage =
       startsAt: string
       endsAt: string
     }
-  | {
-      type: "question_released"
-      eventId: string
-      questionId: string
-      position: number
-    }
   | { type: "announcement"; eventId: string; message: string }
   | {
       type: "submission"

@@ -8,15 +8,14 @@ const questionObject = {
     position: { type: "integer" },
     prompt: { type: "string" },
     answer: { type: "number" },
-    releasedAt: { type: ["string", "null"] },
     createdAt: { type: "string" },
   },
 } as const
 
 export const questionsSchema = {
-  listReleased: {
+  listForPlayers: {
     tags: ["questions"],
-    summary: "Released questions for an event (player view)",
+    summary: "Questions for an event (player view)",
     params: { type: "object", properties: { id: { type: "string" } } },
     response: {
       200: {
@@ -65,7 +64,6 @@ export const questionsSchema = {
         prompt: { type: "string" },
         answer: { type: "number" },
         position: { type: "integer" },
-        released: { type: "boolean" },
       },
     },
     response: { 200: questionObject },
