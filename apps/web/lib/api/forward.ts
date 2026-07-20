@@ -18,14 +18,20 @@ export async function forward(
   const fullPath = path + (url.search || "")
 
   let body: BodyInit | undefined = undefined
+  const headers: Record<string, string> = {}
   if (request.method !== "GET" && request.method !== "HEAD") {
-    body = await request.text()
+    const text = await request.text()
+    if (text) {
+      body = text
+      headers["Content-Type"] =
+        request.headers.get("content-type") ?? "application/json"
+    }
   }
 
   const upstream = await proxyApi(fullPath, {
     method: request.method,
     body,
-    headers: { "Content-Type": "application/json" },
+    headers,
   })
 
   const text = await upstream.text()
