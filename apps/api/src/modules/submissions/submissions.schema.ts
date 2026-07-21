@@ -20,6 +20,16 @@ const teamScoreObject = {
     score: { type: "number" },
     goodIntervals: { type: "integer" },
     submissionCount: { type: "integer" },
+    evaluations: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          questionId: { type: "string" },
+          correct: { type: "boolean" },
+        },
+      },
+    },
   },
 } as const
 

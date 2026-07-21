@@ -114,6 +114,10 @@ export function PlayClient({
   )
 
   const latest = useMemo(() => latestByQuestion(submissions), [submissions])
+  const correctByQuestion = useMemo(
+    () => new Map(score.evaluations.map((e) => [e.questionId, e.correct])),
+    [score.evaluations]
+  )
   const remaining = Math.max(0, event.submissionCap - score.submissionCount)
   const locked = expired || remaining <= 0
 
@@ -199,6 +203,7 @@ export function PlayClient({
                 disabled={locked}
                 onSubmit={(min, max) => handleSubmit(q.id, min, max)}
                 editors={editors}
+                correct={correctByQuestion.get(q.id)}
                 presence={
                   currentUser
                     ? { eventId: event.id, teamId: team.id, currentUser }

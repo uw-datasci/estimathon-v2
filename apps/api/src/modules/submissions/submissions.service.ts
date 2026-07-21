@@ -90,6 +90,7 @@ export class SubmissionsService {
       score: teamScore.score,
       goodIntervals: teamScore.goodIntervals,
       submissionCount: teamScore.submissionCount,
+      evaluations: teamScore.evaluations,
     })
     hub.publish(eventId, {
       type: "submission",

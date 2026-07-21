@@ -52,7 +52,9 @@ export class LeaderboardService {
           teamId: team.id,
           code: team.code,
           name: team.name,
-          ...scored,
+          score: scored.score,
+          goodIntervals: scored.goodIntervals,
+          submissionCount: scored.submissionCount,
           members: memberRows.map((m) => ({
             id: m.user_id,
             firstName: null,

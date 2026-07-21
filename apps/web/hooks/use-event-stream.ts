@@ -3,7 +3,11 @@
 import { useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { clientConfig } from "@/config/client"
-import type { LeaderboardEntry, ServerMessage } from "@estimathon/types"
+import type {
+  LeaderboardEntry,
+  QuestionEvaluation,
+  ServerMessage,
+} from "@estimathon/types"
 
 export const leaderboardQueryKey = (eventId: string) =>
   ["leaderboard", eventId] as const
@@ -17,6 +21,7 @@ interface UseEventStreamOptions {
     score: number
     goodIntervals: number
     submissionCount: number
+    evaluations: QuestionEvaluation[]
   }) => void
   onEventStatus?: (status: ServerMessage & { type: "event_status" }) => void
   onSubmission?: (msg: ServerMessage & { type: "submission" }) => void
@@ -68,6 +73,7 @@ export function useEventStream({
               score: msg.score,
               goodIntervals: msg.goodIntervals,
               submissionCount: msg.submissionCount,
+              evaluations: msg.evaluations,
             }
             queryClient.setQueryData(["teamScore", teamId], payload)
             onTeamScore?.(payload)

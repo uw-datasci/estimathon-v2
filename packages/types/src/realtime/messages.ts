@@ -1,5 +1,5 @@
 import type { EventStatus } from "../event/events.js"
-import type { LeaderboardEntry } from "../event/scoring.js"
+import type { LeaderboardEntry, QuestionEvaluation } from "../event/scoring.js"
 import type { Submission } from "../event/submissions.js"
 
 export interface EditingPresence {
@@ -17,6 +17,7 @@ export type ServerMessage =
       score: number
       goodIntervals: number
       submissionCount: number
+      evaluations: QuestionEvaluation[]
     }
   | {
       type: "event_status"

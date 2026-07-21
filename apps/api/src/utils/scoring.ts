@@ -23,10 +23,16 @@ interface ScoringQuestion {
   answer: number
 }
 
+export interface QuestionEvaluation {
+  questionId: string
+  correct: boolean
+}
+
 interface ScoreResult {
   score: number
   goodIntervals: number
   submissionCount: number
+  evaluations: QuestionEvaluation[]
 }
 
 /* ========================================================================== *
@@ -59,11 +65,14 @@ export function computeTeamScore(
 
   let goodIntervals = 0
   let totalRatio = 0
+  const evaluations: QuestionEvaluation[] = []
 
   for (const s of latest) {
     const answer = answers.get(s.questionId)
     if (answer === undefined) continue
-    if (s.minValue <= answer && answer <= s.maxValue) {
+    const correct = s.minValue <= answer && answer <= s.maxValue
+    evaluations.push({ questionId: s.questionId, correct })
+    if (correct) {
       goodIntervals++
       totalRatio += s.maxValue / s.minValue
     }
@@ -75,5 +84,6 @@ export function computeTeamScore(
     score: Math.round(baseScore * multiplier),
     goodIntervals,
     submissionCount: submissions.length,
+    evaluations,
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { motion, useReducedMotion } from "motion/react"
-import { Lock, Send } from "lucide-react"
+import { Check, Lock, Send, X } from "lucide-react"
 import { Button } from "@estimathon/ui/components/button"
 import { Input } from "@estimathon/ui/components/input"
 import {
@@ -32,6 +32,12 @@ interface QuestionCardProps {
   disabled?: boolean
   /** Teammates (never the local user) currently editing this question. */
   editors?: EditingPresence[]
+  /**
+   * Whether the team's latest submission for this question is inside the
+   * answer's range. Undefined when there's no submission (or no evaluation)
+   * yet - the card stays neutral.
+   */
+  correct?: boolean
   /** Present only when the local session has a known identity to announce. */
   presence?: {
     eventId: string
@@ -54,6 +60,7 @@ export function QuestionCard({
   onSubmit,
   disabled,
   editors = [],
+  correct,
   presence,
 }: Readonly<QuestionCardProps>) {
   const prefersReduced = useReducedMotion()
@@ -149,6 +156,7 @@ export function QuestionCard({
 
   const locked = !!latest
   const beingEdited = editors.length > 0
+  const evaluated = correct !== undefined
   const settleAnimation = prefersReduced
     ? undefined
     : {
@@ -164,7 +172,11 @@ export function QuestionCard({
       <Card
         className={cn(
           "relative overflow-hidden transition-colors",
-          locked && "border-primary/50",
+          locked && !evaluated && "border-primary/50",
+          evaluated &&
+            (correct
+              ? "border-emerald-500/60 bg-emerald-500/5"
+              : "border-red-500/60 bg-red-500/5"),
           beingEdited && "border-amber-400/60 ring-2 ring-amber-400/30"
         )}
       >
@@ -184,12 +196,28 @@ export function QuestionCard({
               </span>{" "}
               <span className="text-foreground">{question.prompt}</span>
             </span>
-            {locked && (
-              <Lock
-                className="text-primary"
-                size={14}
-                aria-label="Range submitted"
-              />
+            {evaluated ? (
+              correct ? (
+                <Check
+                  className="text-emerald-600 dark:text-emerald-400"
+                  size={14}
+                  aria-label="Answer is in range"
+                />
+              ) : (
+                <X
+                  className="text-red-600 dark:text-red-400"
+                  size={14}
+                  aria-label="Answer is out of range"
+                />
+              )
+            ) : (
+              locked && (
+                <Lock
+                  className="text-primary"
+                  size={14}
+                  aria-label="Range submitted"
+                />
+              )
             )}
           </CardTitle>
           {beingEdited && (

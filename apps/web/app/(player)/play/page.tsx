@@ -54,6 +54,7 @@ export default async function PlayPage() {
             score: 0,
             goodIntervals: 0,
             submissionCount: 0,
+            evaluations: [],
           }
         }
         initialLeaderboard={leaderboardResult.data?.leaderboard ?? []}
