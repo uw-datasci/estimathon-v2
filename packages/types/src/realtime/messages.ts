@@ -2,6 +2,12 @@ import type { EventStatus } from "../event/events.js"
 import type { LeaderboardEntry } from "../event/scoring.js"
 import type { Submission } from "../event/submissions.js"
 
+export interface EditingPresence {
+  userId: string
+  name: string
+  avatarUrl: string | null
+}
+
 export type ServerMessage =
   | { type: "leaderboard"; eventId: string; data: LeaderboardEntry[] }
   | {
@@ -28,7 +34,14 @@ export type ServerMessage =
       teamName: string | null
       submission: Pick<
         Submission,
-        "id" | "questionId" | "minValue" | "maxValue" | "submittedAt"
+        "id" | "questionId" | "userId" | "minValue" | "maxValue" | "submittedAt"
       >
+    }
+  | {
+      type: "editing"
+      eventId: string
+      teamId: string
+      questionId: string
+      editors: EditingPresence[]
     }
   | { type: "heartbeat"; ts: number }

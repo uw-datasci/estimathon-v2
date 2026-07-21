@@ -6,13 +6,16 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { Button } from "@estimathon/ui/components/button"
 import { useEventStream, useLeaderboardQuery } from "@/hooks/use-event-stream"
+import type { SessionIdentity } from "@/lib/auth/session"
 import { Timer } from "./timer"
 import { ScorePanel } from "./score-panel"
 import { QuestionCard } from "./question-card"
 import type {
+  EditingPresence,
   Event,
   LeaderboardEntry,
   Question,
+  ServerMessage,
   Submission,
   Team,
   TeamScore,
@@ -26,6 +29,7 @@ interface PlayClientProps {
   initialScore: TeamScore
   initialLeaderboard?: LeaderboardEntry[]
   accessToken?: string | null
+  currentUser?: SessionIdentity | null
 }
 
 function latestByQuestion(submissions: Submission[]): Map<string, Submission> {
@@ -47,12 +51,16 @@ export function PlayClient({
   initialScore,
   initialLeaderboard = [],
   accessToken = null,
+  currentUser = null,
 }: PlayClientProps) {
   const router = useRouter()
   const [submissions, setSubmissions] =
     useState<Submission[]>(initialSubmissions)
   const [score, setScore] = useState<TeamScore>(initialScore)
   const [expired, setExpired] = useState(false)
+  const [editingByQuestion, setEditingByQuestion] = useState<
+    Map<string, EditingPresence[]>
+  >(new Map())
 
   const onEventStatus = useCallback(
     (msg: { status: Event["status"] }) => {
@@ -64,12 +72,40 @@ export function PlayClient({
     [router]
   )
 
+  const onSubmission = useCallback(
+    (msg: ServerMessage & { type: "submission" }) => {
+      if (msg.teamId !== team.id) return
+      setSubmissions((prev) => {
+        // Dedup by id: the submitter's own optimistic update in handleSubmit
+        // already added this row before the broadcast round-trips back.
+        if (prev.some((s) => s.id === msg.submission.id)) return prev
+        const full: Submission = { ...msg.submission, teamId: msg.teamId }
+        return [full, ...prev]
+      })
+    },
+    [team.id]
+  )
+
+  const onEditing = useCallback(
+    (msg: ServerMessage & { type: "editing" }) => {
+      setEditingByQuestion((prev) => {
+        const next = new Map(prev)
+        if (msg.editors.length === 0) next.delete(msg.questionId)
+        else next.set(msg.questionId, msg.editors)
+        return next
+      })
+    },
+    []
+  )
+
   useEventStream({
     eventId: accessToken ? event.id : null,
     accessToken,
     teamId: team.id,
     onTeamScore: (s) => setScore({ ...s }),
     onEventStatus,
+    onSubmission,
+    onEditing,
   })
 
   const { data: leaderboard } = useLeaderboardQuery(
@@ -151,15 +187,26 @@ export function PlayClient({
             No questions yet. Hang tight.
           </div>
         ) : (
-          questions.map((q) => (
-            <QuestionCard
-              key={q.id}
-              question={q}
-              latest={latest.get(q.id) ?? null}
-              disabled={locked}
-              onSubmit={(min, max) => handleSubmit(q.id, min, max)}
-            />
-          ))
+          questions.map((q) => {
+            const editors = (editingByQuestion.get(q.id) ?? []).filter(
+              (e) => e.userId !== currentUser?.userId
+            )
+            return (
+              <QuestionCard
+                key={q.id}
+                question={q}
+                latest={latest.get(q.id) ?? null}
+                disabled={locked}
+                onSubmit={(min, max) => handleSubmit(q.id, min, max)}
+                editors={editors}
+                presence={
+                  currentUser
+                    ? { eventId: event.id, teamId: team.id, currentUser }
+                    : undefined
+                }
+              />
+            )
+          })
         )}
       </div>
 

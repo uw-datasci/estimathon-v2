@@ -34,6 +34,34 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
   }
 }
 
+export interface SessionIdentity {
+  userId: string
+  name: string
+  avatarUrl: string | null
+}
+
+/**
+ * Returns display identity (name + avatar) for the current session, sourced
+ * from the Supabase user's metadata since the API has no local profile store.
+ * Used to label "teammate is editing" presence - null when unauthenticated.
+ */
+export async function getSessionIdentity(): Promise<SessionIdentity | null> {
+  const supabase = await createSupabaseServerClient()
+  const { data, error } = await supabase.auth.getUser()
+  if (error || !data.user) return null
+  const metadata = data.user.user_metadata ?? {}
+  const name =
+    (metadata.full_name as string | undefined) ??
+    (metadata.name as string | undefined) ??
+    data.user.email?.split("@")[0] ??
+    "Teammate"
+  return {
+    userId: data.user.id,
+    name,
+    avatarUrl: (metadata.avatar_url as string | undefined) ?? null,
+  }
+}
+
 /**
  * Server-side guard: redirects to the main club site's login page when no
  * session is present. Returns the authenticated user on success.

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion, useReducedMotion } from "motion/react"
 import { Lock, Send } from "lucide-react"
 import { Button } from "@estimathon/ui/components/button"
@@ -11,14 +11,41 @@ import {
   CardHeader,
   CardTitle,
 } from "@estimathon/ui/components/card"
-import type { Question, Submission } from "@estimathon/types"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarImage,
+} from "@estimathon/ui/components/avatar"
+import type { EditingPresence, Question, Submission } from "@estimathon/types"
 import { cn } from "@estimathon/ui/lib/utils"
+import { postEditingPresence } from "@/hooks/use-event-stream"
+import type { SessionIdentity } from "@/lib/auth/session"
+
+const HEARTBEAT_MS = 10_000
+const BLUR_GRACE_MS = 150
 
 interface QuestionCardProps {
   question: Question
   latest: Submission | null
   onSubmit: (min: number, max: number) => Promise<void>
   disabled?: boolean
+  /** Teammates (never the local user) currently editing this question. */
+  editors?: EditingPresence[]
+  /** Present only when the local session has a known identity to announce. */
+  presence?: {
+    eventId: string
+    teamId: string
+    currentUser: SessionIdentity
+  }
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return "?"
+  const first = parts[0]![0] ?? ""
+  const last = parts.length > 1 ? (parts[parts.length - 1]![0] ?? "") : ""
+  return (first + last).toUpperCase()
 }
 
 export function QuestionCard({
@@ -26,6 +53,8 @@ export function QuestionCard({
   latest,
   onSubmit,
   disabled,
+  editors = [],
+  presence,
 }: Readonly<QuestionCardProps>) {
   const prefersReduced = useReducedMotion()
   const latestSyncKey = latest
@@ -35,15 +64,67 @@ export function QuestionCard({
   const [max, setMax] = useState(latest ? String(latest.maxValue) : "")
   const [prevLatestSyncKey, setPrevLatestSyncKey] = useState(latestSyncKey)
   const [submitting, setSubmitting] = useState(false)
+  const [focused, setFocused] = useState(false)
   const justLockedRef = useRef(0)
   const [pulseToken, setPulseToken] = useState(0)
+  const editingRef = useRef(false)
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | undefined>(
+    undefined
+  )
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  )
 
-  // Reflect server updates (e.g. teammate submitted) back into the inputs.
-  if (latestSyncKey !== prevLatestSyncKey) {
+  // Reflect server updates (e.g. teammate submitted) back into the inputs,
+  // but don't clobber a field the local user is actively editing.
+  if (latestSyncKey !== prevLatestSyncKey && !focused) {
     setPrevLatestSyncKey(latestSyncKey)
     setMin(latest ? String(latest.minValue) : "")
     setMax(latest ? String(latest.maxValue) : "")
   }
+
+  function startEditing() {
+    if (!presence || editingRef.current) return
+    editingRef.current = true
+    const { eventId, teamId, currentUser } = presence
+    postEditingPresence(eventId, teamId, question.id, true, currentUser)
+    heartbeatRef.current = setInterval(() => {
+      postEditingPresence(eventId, teamId, question.id, true, currentUser)
+    }, HEARTBEAT_MS)
+  }
+
+  function stopEditing() {
+    if (heartbeatRef.current) clearInterval(heartbeatRef.current)
+    heartbeatRef.current = undefined
+    if (!presence || !editingRef.current) return
+    editingRef.current = false
+    const { eventId, teamId, currentUser } = presence
+    postEditingPresence(eventId, teamId, question.id, false, currentUser)
+  }
+
+  function handleFocus() {
+    if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
+    setFocused(true)
+    startEditing()
+  }
+
+  function handleBlur() {
+    if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
+    // Grace period so tabbing between the min/max inputs doesn't flicker
+    // the "answering" indicator off and back on for teammates.
+    blurTimerRef.current = setTimeout(() => {
+      setFocused(false)
+      stopEditing()
+    }, BLUR_GRACE_MS)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
+      stopEditing()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleSubmit() {
     const minNum = Number(min)
@@ -60,12 +141,14 @@ export function QuestionCard({
       await onSubmit(minNum, maxNum)
       justLockedRef.current = Date.now()
       setPulseToken((t) => t + 1)
+      stopEditing()
     } finally {
       setSubmitting(false)
     }
   }
 
   const locked = !!latest
+  const beingEdited = editors.length > 0
   const settleAnimation = prefersReduced
     ? undefined
     : {
@@ -81,7 +164,8 @@ export function QuestionCard({
       <Card
         className={cn(
           "relative overflow-hidden transition-colors",
-          locked && "border-primary/50"
+          locked && "border-primary/50",
+          beingEdited && "border-amber-400/60 ring-2 ring-amber-400/30"
         )}
       >
         <motion.div
@@ -108,6 +192,25 @@ export function QuestionCard({
               />
             )}
           </CardTitle>
+          {beingEdited && (
+            <div className="flex items-center gap-2 pt-1">
+              <AvatarGroup>
+                {editors.slice(0, 3).map((editor) => (
+                  <Avatar key={editor.userId} size="sm">
+                    {editor.avatarUrl && (
+                      <AvatarImage src={editor.avatarUrl} alt={editor.name} />
+                    )}
+                    <AvatarFallback>{initials(editor.name)}</AvatarFallback>
+                  </Avatar>
+                ))}
+              </AvatarGroup>
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                {editors.length === 1
+                  ? `${editors[0]!.name} is answering…`
+                  : `${editors[0]!.name} +${editors.length - 1} answering…`}
+              </span>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
@@ -117,6 +220,8 @@ export function QuestionCard({
               value={min}
               min={0}
               onChange={(e) => setMin(e.target.value)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
               disabled={disabled || submitting}
               className="text-right tabular-nums"
               inputMode="decimal"
@@ -128,6 +233,8 @@ export function QuestionCard({
               value={max}
               min={0}
               onChange={(e) => setMax(e.target.value)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
               disabled={disabled || submitting}
               className="text-right tabular-nums"
               inputMode="decimal"

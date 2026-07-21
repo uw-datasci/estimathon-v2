@@ -1,9 +1,50 @@
 import type { FastifyReply, FastifyRequest } from "fastify"
+import type { TeamsRepository } from "../teams/teams.repository"
 import type { EventHub } from "./event-hub"
+import type { EditingPresenceStore } from "./editing-presence"
+
+const MAX_NAME_LENGTH = 60
+
+interface SetEditingBody {
+  teamId: string
+  questionId: string
+  editing: boolean
+  name: string
+  avatarUrl?: string | null
+}
 
 export class RealtimeController {
-  constructor(private readonly hub: EventHub) {
+  constructor(
+    private readonly hub: EventHub,
+    private readonly presence: EditingPresenceStore,
+    private readonly teams: TeamsRepository
+  ) {
     this.stream = this.stream.bind(this)
+    this.setEditing = this.setEditing.bind(this)
+  }
+
+  async setEditing(request: FastifyRequest, reply: FastifyReply) {
+    const { id: eventId } = request.params as { id: string }
+    const { teamId, questionId, editing, name, avatarUrl } =
+      request.body as SetEditingBody
+    const user = request.user!
+
+    const membership = await this.teams.getMembershipForUser(user.id, eventId)
+    if (membership?.team_id !== teamId) {
+      return reply.code(403).send({ error: "You're not on this team" })
+    }
+
+    if (editing) {
+      this.presence.touch(eventId, teamId, questionId, {
+        userId: user.id,
+        name: name.trim().slice(0, MAX_NAME_LENGTH) || "Teammate",
+        avatarUrl: avatarUrl ?? null,
+      })
+    } else {
+      this.presence.remove(eventId, teamId, questionId, user.id)
+    }
+
+    return reply.code(204).send()
   }
 
   async stream(request: FastifyRequest, reply: FastifyReply) {

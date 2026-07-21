@@ -20,6 +20,7 @@ interface UseEventStreamOptions {
   }) => void
   onEventStatus?: (status: ServerMessage & { type: "event_status" }) => void
   onSubmission?: (msg: ServerMessage & { type: "submission" }) => void
+  onEditing?: (msg: ServerMessage & { type: "editing" }) => void
 }
 
 /**
@@ -33,6 +34,7 @@ export function useEventStream({
   onTeamScore,
   onEventStatus,
   onSubmission,
+  onEditing,
 }: UseEventStreamOptions) {
   const queryClient = useQueryClient()
 
@@ -77,6 +79,9 @@ export function useEventStream({
         case "submission":
           onSubmission?.(msg)
           break
+        case "editing":
+          if (!teamId || msg.teamId === teamId) onEditing?.(msg)
+          break
         default:
           break
       }
@@ -91,7 +96,38 @@ export function useEventStream({
     onTeamScore,
     onEventStatus,
     onSubmission,
+    onEditing,
   ])
+}
+
+/**
+ * Tells the server the caller has started/stopped editing a question, so
+ * teammates can see a live "X is answering" indicator. Fire-and-forget -
+ * presence is best-effort and self-heals via server-side TTL expiry.
+ */
+export function postEditingPresence(
+  eventId: string,
+  teamId: string,
+  questionId: string,
+  editing: boolean,
+  identity: { name: string; avatarUrl: string | null }
+) {
+  const body = JSON.stringify({
+    teamId,
+    questionId,
+    editing,
+    name: identity.name,
+    avatarUrl: identity.avatarUrl,
+  })
+  fetch(`/api/events/${encodeURIComponent(eventId)}/presence`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: !editing,
+  }).catch(() => {
+    // best-effort - a dropped call just means the outline disappears a
+    // little later than ideal, or the sweep on the server clears it
+  })
 }
 
 export function useLeaderboardQuery(

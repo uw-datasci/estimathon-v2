@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { proxyApiJson } from "@/lib/api/proxy"
-import { getAccessToken } from "@/lib/auth/session"
+import { getAccessToken, getSessionIdentity } from "@/lib/auth/session"
 import { PlayClient } from "@/components/play/play-client"
 import type {
   LeaderboardEntry,
@@ -36,7 +36,10 @@ export default async function PlayPage() {
       ),
     ])
 
-  const accessToken = await getAccessToken()
+  const [accessToken, currentUser] = await Promise.all([
+    getAccessToken(),
+    getSessionIdentity(),
+  ])
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
@@ -55,6 +58,7 @@ export default async function PlayPage() {
         }
         initialLeaderboard={leaderboardResult.data?.leaderboard ?? []}
         accessToken={accessToken}
+        currentUser={currentUser}
       />
     </main>
   )

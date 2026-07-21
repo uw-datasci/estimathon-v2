@@ -100,6 +100,7 @@ export class SubmissionsService {
       submission: {
         id: submission.id,
         questionId: submission.questionId,
+        userId: submission.userId,
         minValue: submission.minValue,
         maxValue: submission.maxValue,
         submittedAt: submission.submittedAt,
