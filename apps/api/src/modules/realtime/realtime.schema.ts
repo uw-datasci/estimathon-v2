@@ -1,4 +1,4 @@
-import type { FastifySchema } from "fastify"
+import type { FastifySchema } from "fastify";
 
 export const realtimeSchema = {
   stream: {
@@ -22,4 +22,4 @@ export const realtimeSchema = {
       },
     },
   },
-} satisfies Record<string, FastifySchema>
+} satisfies Record<string, FastifySchema>;

@@ -1,10 +1,10 @@
-import { queryOne } from "@estimathon/db"
-import type { Event, Team } from "@estimathon/types"
-import type { EventRow } from "../events/events.types"
-import { rowToEvent } from "../events/events.repository"
-import type { TeamRow } from "../teams/teams.types"
+import { queryOne } from "@estimathon/db";
+import type { Event, Team } from "@estimathon/types";
+import type { EventRow } from "../events/events.types";
+import { rowToEvent } from "../events/events.repository";
+import type { TeamRow } from "../teams/teams.types";
 
-const SELECTABLE_EVENT_STATUSES = ["active", "ended"] as const
+const SELECTABLE_EVENT_STATUSES = ["active", "ended"] as const;
 
 function rowToTeam(row: TeamRow): Team {
   return {
@@ -13,7 +13,7 @@ function rowToTeam(row: TeamRow): Team {
     code: row.code,
     name: row.name,
     createdAt: row.created_at,
-  }
+  };
 }
 
 export class MeRepository {
@@ -29,8 +29,8 @@ export class MeRepository {
                 starts_at desc
        limit 1`,
       [SELECTABLE_EVENT_STATUSES]
-    )
-    return row ? rowToEvent(row) : null
+    );
+    return row ? rowToEvent(row) : null;
   }
 
   /**
@@ -42,7 +42,7 @@ export class MeRepository {
        join team_members m on m.team_id = t.id
        where m.user_id = $1 and m.event_id = $2`,
       [userId, eventId]
-    )
-    return row ? rowToTeam(row) : null
+    );
+    return row ? rowToTeam(row) : null;
   }
 }

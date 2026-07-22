@@ -1,4 +1,4 @@
-import type { EventStatus } from "@estimathon/types"
+import type { EventStatus } from "@estimathon/types";
 
 const dateFormatter = new Intl.DateTimeFormat("en-CA", {
   month: "short",
@@ -6,16 +6,13 @@ const dateFormatter = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
   hour: "numeric",
   minute: "2-digit",
-})
+});
 
-export function formatRange(
-  startsAt: string | null,
-  endsAt: string | null
-): string {
-  if (!startsAt || !endsAt) return "Not started"
-  const start = new Date(startsAt)
-  const end = new Date(endsAt)
-  return `${dateFormatter.format(start)} → ${dateFormatter.format(end)}`
+export function formatRange(startsAt: string | null, endsAt: string | null): string {
+  if (!startsAt || !endsAt) return "Not started";
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  return `${dateFormatter.format(start)} → ${dateFormatter.format(end)}`;
 }
 
 export function statusVariant(
@@ -23,11 +20,11 @@ export function statusVariant(
 ): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
     case "active":
-      return "default"
+      return "default";
     case "ended":
     case "archived":
     case "draft":
-      return "outline"
+      return "outline";
   }
 }
 
@@ -36,18 +33,18 @@ export function statusVariant(
  * expects (YYYY-MM-DDTHH:mm in the user's local timezone).
  */
 export function toLocalInput(iso: string | null | undefined): string {
-  if (!iso) return ""
-  const d = new Date(iso)
-  const pad = (n: number) => String(n).padStart(2, "0")
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
   return (
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
     `T${pad(d.getHours())}:${pad(d.getMinutes())}`
-  )
+  );
 }
 
 /**
  * Convert a `datetime-local` value (local timezone) back to ISO UTC.
  */
 export function fromLocalInput(local: string): string {
-  return new Date(local).toISOString()
+  return new Date(local).toISOString();
 }

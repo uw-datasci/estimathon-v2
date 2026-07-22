@@ -1,9 +1,9 @@
-import "server-only"
+import "server-only";
 
-import { redirect } from "next/navigation"
-import { clientConfig } from "@/config/client"
-import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { isStaffRole, type AuthenticatedUser } from "@estimathon/types"
+import { redirect } from "next/navigation";
+import { clientConfig } from "@/config/client";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isStaffRole, type AuthenticatedUser } from "@estimathon/types";
 
 /**
  * Returns the access token of the current session, or null if no valid
@@ -11,9 +11,9 @@ import { isStaffRole, type AuthenticatedUser } from "@estimathon/types"
  * Fastify API.
  */
 export async function getAccessToken(): Promise<string | null> {
-  const supabase = await createSupabaseServerClient()
-  const { data } = await supabase.auth.getSession()
-  return data.session?.access_token ?? null
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
 }
 
 /**
@@ -22,22 +22,22 @@ export async function getAccessToken(): Promise<string | null> {
  * session, so we don't trust a stale cookie.
  */
 export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
-  const supabase = await createSupabaseServerClient()
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) return null
-  const raw = data.user.app_metadata?.role as string | undefined
-  const role = raw === "admin" || raw === "exec" ? raw : "user"
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) return null;
+  const raw = data.user.app_metadata?.role as string | undefined;
+  const role = raw === "admin" || raw === "exec" ? raw : "user";
   return {
     id: data.user.id,
     email: data.user.email ?? null,
     role,
-  }
+  };
 }
 
 export interface SessionIdentity {
-  userId: string
-  name: string
-  avatarUrl: string | null
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
 }
 
 /**
@@ -46,46 +46,42 @@ export interface SessionIdentity {
  * Used to label "teammate is editing" presence - null when unauthenticated.
  */
 export async function getSessionIdentity(): Promise<SessionIdentity | null> {
-  const supabase = await createSupabaseServerClient()
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) return null
-  const metadata = data.user.user_metadata ?? {}
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) return null;
+  const metadata = data.user.user_metadata ?? {};
   const name =
     (metadata.full_name as string | undefined) ??
     (metadata.name as string | undefined) ??
     data.user.email?.split("@")[0] ??
-    "Teammate"
+    "Teammate";
   return {
     userId: data.user.id,
     name,
     avatarUrl: (metadata.avatar_url as string | undefined) ?? null,
-  }
+  };
 }
 
 /**
  * Server-side guard: redirects to the main club site's login page when no
  * session is present. Returns the authenticated user on success.
  */
-export async function requireSession(
-  returnTo?: string
-): Promise<AuthenticatedUser> {
-  const user = await getAuthenticatedUser()
+export async function requireSession(returnTo?: string): Promise<AuthenticatedUser> {
+  const user = await getAuthenticatedUser();
   if (!user) {
-    const loginUrl = new URL("/login", clientConfig.mainSiteUrl)
-    if (returnTo) loginUrl.searchParams.set("redirect", returnTo)
-    redirect(loginUrl.toString())
+    const loginUrl = new URL("/login", clientConfig.mainSiteUrl);
+    if (returnTo) loginUrl.searchParams.set("redirect", returnTo);
+    redirect(loginUrl.toString());
   }
-  return user
+  return user;
 }
 
 /**
  * Like requireSession but additionally requires `app_metadata.role` of
  * `admin` or `exec`. Redirects to /unauthorized otherwise.
  */
-export async function requireAdmin(
-  returnTo?: string
-): Promise<AuthenticatedUser> {
-  const user = await requireSession(returnTo)
-  if (!isStaffRole(user.role)) redirect("/unauthorized")
-  return user
+export async function requireAdmin(returnTo?: string): Promise<AuthenticatedUser> {
+  const user = await requireSession(returnTo);
+  if (!isStaffRole(user.role)) redirect("/unauthorized");
+  return user;
 }

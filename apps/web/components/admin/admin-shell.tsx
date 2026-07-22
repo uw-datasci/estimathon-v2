@@ -1,9 +1,9 @@
-import Link from "next/link"
+import Link from "next/link";
 
 interface AdminShellProps {
-  title: string
-  actions?: React.ReactNode
-  children: React.ReactNode
+  title: string;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export function AdminShell({ title, actions, children }: AdminShellProps) {
@@ -21,7 +21,7 @@ export function AdminShell({ title, actions, children }: AdminShellProps) {
               </Link>
             </nav>
           </div>
-          <div className="text-muted-foreground text-xs">
+          <div className="text-xs text-muted-foreground">
             <Link href="/" className="hover:text-foreground">
               ← Back to site
             </Link>
@@ -36,5 +36,5 @@ export function AdminShell({ title, actions, children }: AdminShellProps) {
         {children}
       </main>
     </div>
-  )
+  );
 }

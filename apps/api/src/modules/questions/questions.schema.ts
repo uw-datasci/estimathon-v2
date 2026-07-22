@@ -1,4 +1,4 @@
-import type { FastifySchema } from "fastify"
+import type { FastifySchema } from "fastify";
 
 const questionObject = {
   type: "object",
@@ -10,7 +10,7 @@ const questionObject = {
     answer: { type: "number" },
     createdAt: { type: "string" },
   },
-} as const
+} as const;
 
 export const questionsSchema = {
   listForPlayers: {
@@ -76,4 +76,4 @@ export const questionsSchema = {
       200: { type: "object", properties: { ok: { type: "boolean" } } },
     },
   },
-} satisfies Record<string, FastifySchema>
+} satisfies Record<string, FastifySchema>;

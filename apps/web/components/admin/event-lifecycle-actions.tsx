@@ -1,16 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { Button } from "@estimathon/ui/components/button"
-import { Input } from "@estimathon/ui/components/input"
-import { Label } from "@estimathon/ui/components/label"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@estimathon/ui/components/alert"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@estimathon/ui/components/button";
+import { Input } from "@estimathon/ui/components/input";
+import { Label } from "@estimathon/ui/components/label";
+import { Alert, AlertDescription, AlertTitle } from "@estimathon/ui/components/alert";
 import {
   Dialog,
   DialogContent,
@@ -18,33 +14,30 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@estimathon/ui/components/dialog"
-import type { Event } from "@estimathon/types"
-import { toLocalInput, fromLocalInput } from "@/lib/format/event"
+} from "@estimathon/ui/components/dialog";
+import type { Event } from "@estimathon/types";
+import { toLocalInput, fromLocalInput } from "@/lib/format/event";
 
 interface Props {
-  event: Event
+  event: Event;
   /** Number of questions currently added to this event. */
-  questionsCount: number
+  questionsCount: number;
 }
 
-const ADD_TIME_STEP_SECONDS = 30
+const ADD_TIME_STEP_SECONDS = 30;
 
 function defaultStartValue(): string {
-  return toLocalInput(new Date(Date.now() + 5 * 60_000).toISOString())
+  return toLocalInput(new Date(Date.now() + 5 * 60_000).toISOString());
 }
 
-export function EventLifecycleActions({
-  event,
-  questionsCount,
-}: Readonly<Props>) {
-  const router = useRouter()
-  const [pending, setPending] = useState(false)
-  const [startOpen, setStartOpen] = useState(false)
-  const [startsAt, setStartsAt] = useState(defaultStartValue)
-  const [startError, setStartError] = useState<string | null>(null)
+export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [startOpen, setStartOpen] = useState(false);
+  const [startsAt, setStartsAt] = useState(defaultStartValue);
+  const [startError, setStartError] = useState<string | null>(null);
 
-  const questionsReady = questionsCount === event.submissionCap
+  const questionsReady = questionsCount === event.submissionCap;
 
   async function send(
     method: "PATCH" | "POST",
@@ -52,57 +45,57 @@ export function EventLifecycleActions({
     body: Record<string, unknown> | undefined,
     successMsg: string
   ) {
-    setPending(true)
+    setPending(true);
     try {
       const res = await fetch(`/api/admin/events/${event.id}${path}`, {
         method,
         headers: { "Content-Type": "application/json" },
         body: body ? JSON.stringify(body) : undefined,
-      })
+      });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error ?? "Failed to update event")
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to update event");
       }
-      toast.success(successMsg)
-      router.refresh()
-      return true
+      toast.success(successMsg);
+      router.refresh();
+      return true;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed")
-      return false
+      toast.error(err instanceof Error ? err.message : "Failed");
+      return false;
     } finally {
-      setPending(false)
+      setPending(false);
     }
   }
 
   function openStartDialog() {
-    setStartsAt(defaultStartValue())
-    setStartError(null)
-    setStartOpen(true)
+    setStartsAt(defaultStartValue());
+    setStartError(null);
+    setStartOpen(true);
   }
 
   async function submitStart(e: React.FormEvent) {
-    e.preventDefault()
-    if (!questionsReady) return
-    const iso = fromLocalInput(startsAt)
-    const parsed = Date.parse(iso)
+    e.preventDefault();
+    if (!questionsReady) return;
+    const iso = fromLocalInput(startsAt);
+    const parsed = Date.parse(iso);
     if (!Number.isFinite(parsed) || parsed <= Date.now()) {
-      setStartError("Start time must be in the future")
-      return
+      setStartError("Start time must be in the future");
+      return;
     }
-    setStartError(null)
-    const ok = await send("POST", "/start", { startsAt: iso }, "Event started")
-    if (ok) setStartOpen(false)
+    setStartError(null);
+    const ok = await send("POST", "/start", { startsAt: iso }, "Event started");
+    if (ok) setStartOpen(false);
   }
 
-  let primary: React.ReactNode = null
+  let primary: React.ReactNode = null;
   switch (event.status) {
     case "draft":
       primary = (
         <Button disabled={pending} onClick={openStartDialog}>
           Start event
         </Button>
-      )
-      break
+      );
+      break;
     case "active":
       primary = (
         <div className="flex flex-wrap items-center gap-2">
@@ -111,12 +104,7 @@ export function EventLifecycleActions({
             size="sm"
             disabled={pending}
             onClick={() =>
-              send(
-                "POST",
-                "/add-time",
-                { seconds: -ADD_TIME_STEP_SECONDS },
-                "Removed 30s"
-              )
+              send("POST", "/add-time", { seconds: -ADD_TIME_STEP_SECONDS }, "Removed 30s")
             }
           >
             −30s
@@ -126,12 +114,7 @@ export function EventLifecycleActions({
             size="sm"
             disabled={pending}
             onClick={() =>
-              send(
-                "POST",
-                "/add-time",
-                { seconds: ADD_TIME_STEP_SECONDS },
-                "Added 30s"
-              )
+              send("POST", "/add-time", { seconds: ADD_TIME_STEP_SECONDS }, "Added 30s")
             }
           >
             +30s
@@ -156,30 +139,26 @@ export function EventLifecycleActions({
           <Button
             variant="destructive"
             disabled={pending}
-            onClick={() =>
-              send("PATCH", "", { status: "ended" }, "Event ended")
-            }
+            onClick={() => send("PATCH", "", { status: "ended" }, "Event ended")}
           >
             End event
           </Button>
         </div>
-      )
-      break
+      );
+      break;
     case "ended":
       primary = (
         <Button
           variant="outline"
           disabled={pending}
-          onClick={() =>
-            send("PATCH", "", { status: "archived" }, "Event archived")
-          }
+          onClick={() => send("PATCH", "", { status: "archived" }, "Event archived")}
         >
           Archive
         </Button>
-      )
-      break
+      );
+      break;
     default:
-      primary = null
+      primary = null;
   }
 
   return (
@@ -191,9 +170,9 @@ export function EventLifecycleActions({
             <DialogHeader>
               <DialogTitle>Start event</DialogTitle>
               <DialogDescription>
-                Pick when the event should start - players see a countdown
-                until then. Once live, use Pause and +/-30s to adjust the
-                clock; the start time can&apos;t be edited afterward.
+                Pick when the event should start - players see a countdown until then. Once
+                live, use Pause and +/-30s to adjust the clock; the start time can&apos;t be
+                edited afterward.
               </DialogDescription>
             </DialogHeader>
 
@@ -205,8 +184,8 @@ export function EventLifecycleActions({
                     : "Question count doesn't match the submission cap"}
                 </AlertTitle>
                 <AlertDescription>
-                  Add {event.submissionCap} question(s) before starting
-                  (currently {questionsCount}).
+                  Add {event.submissionCap} question(s) before starting (currently{" "}
+                  {questionsCount}).
                 </AlertDescription>
               </Alert>
             )}
@@ -220,9 +199,7 @@ export function EventLifecycleActions({
                 onChange={(e) => setStartsAt(e.target.value)}
                 required
               />
-              {startError && (
-                <p className="text-xs text-destructive">{startError}</p>
-              )}
+              {startError && <p className="text-xs text-destructive">{startError}</p>}
             </div>
             <DialogFooter>
               <Button
@@ -241,5 +218,5 @@ export function EventLifecycleActions({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

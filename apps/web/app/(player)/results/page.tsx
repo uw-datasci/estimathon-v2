@@ -1,39 +1,33 @@
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { Button } from "@estimathon/ui/components/button"
-import { LeaderboardLive } from "@/components/leaderboard/leaderboard-live"
-import { proxyApiJson } from "@/lib/api/proxy"
-import { getAccessToken } from "@/lib/auth/session"
-import type { LeaderboardEntry, MeResponse } from "@estimathon/types"
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Button } from "@estimathon/ui/components/button";
+import { LeaderboardLive } from "@/components/leaderboard/leaderboard-live";
+import { proxyApiJson } from "@/lib/api/proxy";
+import { getAccessToken } from "@/lib/auth/session";
+import type { LeaderboardEntry, MeResponse } from "@estimathon/types";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export default async function ResultsPage() {
-  const me = await proxyApiJson<MeResponse>("/me")
-  if (me.status === 401 || !me.data) redirect("/")
+  const me = await proxyApiJson<MeResponse>("/me");
+  if (me.status === 401 || !me.data) redirect("/");
 
-  const { event, team } = me.data
-  if (!event) redirect("/")
-  if (event.status === "active") redirect("/play")
-  if (event.status !== "ended") redirect("/")
+  const { event, team } = me.data;
+  if (!event) redirect("/");
+  if (event.status === "active") redirect("/play");
+  if (event.status !== "ended") redirect("/");
 
   const leaderboardResult = await proxyApiJson<{ leaderboard: LeaderboardEntry[] }>(
     `/events/${encodeURIComponent(event.id)}/leaderboard`
-  )
-  const accessToken = await getAccessToken()
+  );
+  const accessToken = await getAccessToken();
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       <div className="mb-8 text-center">
-        <p className="text-muted-foreground text-xs tracking-widest uppercase">
-          {event.name}
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          Final results
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm">
-          Thanks for playing Estimathon.
-        </p>
+        <p className="text-xs tracking-widest text-muted-foreground uppercase">{event.name}</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Final results</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Thanks for playing Estimathon.</p>
       </div>
       <LeaderboardLive
         event={event}
@@ -47,5 +41,5 @@ export default async function ResultsPage() {
         </Button>
       </div>
     </main>
-  )
+  );
 }

@@ -12,27 +12,27 @@
  * ========================================================================== */
 
 interface ScoringSubmission {
-  questionId: string
-  minValue: number
-  maxValue: number
-  submittedAt: string
+  questionId: string;
+  minValue: number;
+  maxValue: number;
+  submittedAt: string;
 }
 
 interface ScoringQuestion {
-  id: string
-  answer: number
+  id: string;
+  answer: number;
 }
 
 export interface QuestionEvaluation {
-  questionId: string
-  correct: boolean
+  questionId: string;
+  correct: boolean;
 }
 
 interface ScoreResult {
-  score: number
-  goodIntervals: number
-  submissionCount: number
-  evaluations: QuestionEvaluation[]
+  score: number;
+  goodIntervals: number;
+  submissionCount: number;
+  evaluations: QuestionEvaluation[];
 }
 
 /* ========================================================================== *
@@ -45,14 +45,14 @@ interface ScoreResult {
 export function latestSubmissionsPerQuestion(
   submissions: ScoringSubmission[]
 ): ScoringSubmission[] {
-  const byQuestion = new Map<string, ScoringSubmission>()
+  const byQuestion = new Map<string, ScoringSubmission>();
   for (const s of submissions) {
-    const existing = byQuestion.get(s.questionId)
+    const existing = byQuestion.get(s.questionId);
     if (!existing || s.submittedAt > existing.submittedAt) {
-      byQuestion.set(s.questionId, s)
+      byQuestion.set(s.questionId, s);
     }
   }
-  return [...byQuestion.values()]
+  return [...byQuestion.values()];
 }
 
 export function computeTeamScore(
@@ -60,30 +60,30 @@ export function computeTeamScore(
   questions: ScoringQuestion[],
   questionCount: number
 ): ScoreResult {
-  const answers = new Map(questions.map((q) => [q.id, q.answer]))
-  const latest = latestSubmissionsPerQuestion(submissions)
+  const answers = new Map(questions.map((q) => [q.id, q.answer]));
+  const latest = latestSubmissionsPerQuestion(submissions);
 
-  let goodIntervals = 0
-  let totalRatio = 0
-  const evaluations: QuestionEvaluation[] = []
+  let goodIntervals = 0;
+  let totalRatio = 0;
+  const evaluations: QuestionEvaluation[] = [];
 
   for (const s of latest) {
-    const answer = answers.get(s.questionId)
-    if (answer === undefined) continue
-    const correct = s.minValue <= answer && answer <= s.maxValue
-    evaluations.push({ questionId: s.questionId, correct })
+    const answer = answers.get(s.questionId);
+    if (answer === undefined) continue;
+    const correct = s.minValue <= answer && answer <= s.maxValue;
+    evaluations.push({ questionId: s.questionId, correct });
     if (correct) {
-      goodIntervals++
-      totalRatio += s.maxValue / s.minValue
+      goodIntervals++;
+      totalRatio += s.maxValue / s.minValue;
     }
   }
 
-  const baseScore = 10 + totalRatio
-  const multiplier = Math.pow(2, Math.max(0, questionCount - goodIntervals))
+  const baseScore = 10 + totalRatio;
+  const multiplier = Math.pow(2, Math.max(0, questionCount - goodIntervals));
   return {
     score: Math.round(baseScore * multiplier),
     goodIntervals,
     submissionCount: submissions.length,
     evaluations,
-  }
+  };
 }

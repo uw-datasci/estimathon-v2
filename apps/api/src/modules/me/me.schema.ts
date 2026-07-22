@@ -1,4 +1,4 @@
-import type { FastifySchema } from "fastify"
+import type { FastifySchema } from "fastify";
 
 const eventSchema = {
   type: "object",
@@ -14,7 +14,7 @@ const eventSchema = {
     status: { type: "string" },
     createdAt: { type: "string" },
   },
-} as const
+} as const;
 
 const teamSchema = {
   type: "object",
@@ -25,7 +25,7 @@ const teamSchema = {
     name: { type: ["string", "null"] },
     createdAt: { type: "string" },
   },
-} as const
+} as const;
 
 export const meSchema = {
   get: {
@@ -53,4 +53,4 @@ export const meSchema = {
       },
     },
   },
-} satisfies Record<string, FastifySchema>
+} satisfies Record<string, FastifySchema>;

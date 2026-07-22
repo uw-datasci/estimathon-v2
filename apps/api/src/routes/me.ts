@@ -1,20 +1,16 @@
-import type { FastifyPluginAsync } from "fastify"
+import type { FastifyPluginAsync } from "fastify";
 
-import { MeController } from "../modules/me/me.controller"
-import { MeRepository } from "../modules/me/me.repository"
-import { meSchema } from "../modules/me/me.schema"
-import { MeService } from "../modules/me/me.service"
+import { MeController } from "../modules/me/me.controller";
+import { MeRepository } from "../modules/me/me.repository";
+import { meSchema } from "../modules/me/me.schema";
+import { MeService } from "../modules/me/me.service";
 
 const meRoutes: FastifyPluginAsync = async (fastify) => {
-  const repository = new MeRepository()
-  const service = new MeService(repository)
-  const controller = new MeController(service)
+  const repository = new MeRepository();
+  const service = new MeService(repository);
+  const controller = new MeController(service);
 
-  fastify.get(
-    "/me",
-    { schema: meSchema.get, preHandler: fastify.requireAuth },
-    controller.get
-  )
-}
+  fastify.get("/me", { schema: meSchema.get, preHandler: fastify.requireAuth }, controller.get);
+};
 
-export default meRoutes
+export default meRoutes;

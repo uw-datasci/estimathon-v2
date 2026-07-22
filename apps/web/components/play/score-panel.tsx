@@ -1,11 +1,11 @@
-import { Card, CardContent } from "@estimathon/ui/components/card"
-import { ScoreCounter } from "./score-counter"
+import { Card, CardContent } from "@estimathon/ui/components/card";
+import { ScoreCounter } from "./score-counter";
 
 interface ScorePanelProps {
-  score: number
-  goodIntervals: number
-  submissionCount: number
-  submissionCap: number
+  score: number;
+  goodIntervals: number;
+  submissionCount: number;
+  submissionCap: number;
 }
 
 export function ScorePanel({
@@ -14,7 +14,7 @@ export function ScorePanel({
   submissionCount,
   submissionCap,
 }: ScorePanelProps) {
-  const remaining = Math.max(0, submissionCap - submissionCount)
+  const remaining = Math.max(0, submissionCap - submissionCount);
   return (
     <Card>
       <CardContent>
@@ -33,23 +33,21 @@ export function ScorePanel({
           />
           <Stat
             label="Guesses left"
-            value={
-              <span className="font-semibold tabular-nums">{remaining}</span>
-            }
+            value={<span className="font-semibold tabular-nums">{remaining}</span>}
           />
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col">
-      <span className="text-muted-foreground text-[10px] uppercase tracking-widest">
+      <span className="text-[10px] tracking-widest text-muted-foreground uppercase">
         {label}
       </span>
       <span className="text-2xl">{value}</span>
     </div>
-  )
+  );
 }

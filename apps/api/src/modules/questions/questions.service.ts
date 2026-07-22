@@ -1,11 +1,8 @@
-import type { Question } from "@estimathon/types"
-import { HttpError } from "../events/events.service"
-import { EventsRepository } from "../events/events.repository"
-import { QuestionsRepository } from "./questions.repository"
-import type {
-  CreateQuestionInput,
-  UpdateQuestionInput,
-} from "./questions.types"
+import type { Question } from "@estimathon/types";
+import { HttpError } from "../events/events.service";
+import { EventsRepository } from "../events/events.repository";
+import { QuestionsRepository } from "./questions.repository";
+import type { CreateQuestionInput, UpdateQuestionInput } from "./questions.types";
 
 export class QuestionsService {
   constructor(
@@ -19,7 +16,7 @@ export class QuestionsService {
   async listForPlayers(eventId: string): Promise<Question[]> {
     return this.repository.listForEvent(eventId, {
       includeAnswer: false,
-    })
+    });
   }
 
   /**
@@ -28,23 +25,21 @@ export class QuestionsService {
   async listAll(eventId: string): Promise<Question[]> {
     return this.repository.listForEvent(eventId, {
       includeAnswer: true,
-    })
+    });
   }
 
   async create(eventId: string, input: CreateQuestionInput): Promise<Question> {
-    const event = await this.events.findById(eventId)
-    if (!event) throw new HttpError(404, "Event not found")
-    if (!input.prompt?.trim()) throw new HttpError(400, "Prompt is required")
-    if (!Number.isFinite(input.answer))
-      throw new HttpError(400, "Answer must be a number")
-    const position =
-      input.position ?? (await this.repository.nextPosition(eventId))
+    const event = await this.events.findById(eventId);
+    if (!event) throw new HttpError(404, "Event not found");
+    if (!input.prompt?.trim()) throw new HttpError(400, "Prompt is required");
+    if (!Number.isFinite(input.answer)) throw new HttpError(400, "Answer must be a number");
+    const position = input.position ?? (await this.repository.nextPosition(eventId));
     return this.repository.create({
       eventId,
       position,
       prompt: input.prompt.trim(),
       answer: input.answer,
-    })
+    });
   }
 
   async update(id: string, input: UpdateQuestionInput): Promise<Question> {
@@ -52,12 +47,12 @@ export class QuestionsService {
       prompt: input.prompt?.trim(),
       answer: input.answer,
       position: input.position,
-    })
-    if (!updated) throw new HttpError(404, "Question not found")
-    return updated
+    });
+    if (!updated) throw new HttpError(404, "Question not found");
+    return updated;
   }
 
   async delete(id: string): Promise<void> {
-    await this.repository.delete(id)
+    await this.repository.delete(id);
   }
 }

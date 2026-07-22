@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { motion, AnimatePresence, useReducedMotion } from "motion/react"
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import {
   Table,
   TableBody,
@@ -8,17 +8,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@estimathon/ui/components/table"
+} from "@estimathon/ui/components/table";
 
-const MotionTableRow = motion(TableRow)
-import { ScoreCounter } from "@/components/play/score-counter"
-import type { LeaderboardEntry } from "@estimathon/types"
-import { cn } from "@estimathon/ui/lib/utils"
+const MotionTableRow = motion(TableRow);
+import { ScoreCounter } from "@/components/play/score-counter";
+import type { LeaderboardEntry } from "@estimathon/types";
+import { cn } from "@estimathon/ui/lib/utils";
 
 interface LeaderboardTableProps {
-  entries: LeaderboardEntry[]
-  highlightTeamId?: string | null
-  className?: string
+  entries: LeaderboardEntry[];
+  highlightTeamId?: string | null;
+  className?: string;
 }
 
 export function LeaderboardTable({
@@ -26,14 +26,14 @@ export function LeaderboardTable({
   highlightTeamId,
   className,
 }: LeaderboardTableProps) {
-  const prefersReduced = useReducedMotion()
+  const prefersReduced = useReducedMotion();
 
   if (entries.length === 0) {
     return (
-      <p className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
+      <p className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
         No teams yet.
       </p>
-    )
+    );
   }
 
   return (
@@ -43,9 +43,7 @@ export function LeaderboardTable({
           <TableHead className="w-12">#</TableHead>
           <TableHead>Team</TableHead>
           <TableHead className="text-right">Score</TableHead>
-          <TableHead className="text-right hidden sm:table-cell">
-            Intervals
-          </TableHead>
+          <TableHead className="hidden text-right sm:table-cell">Intervals</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -62,25 +60,19 @@ export function LeaderboardTable({
                   ? { duration: 0 }
                   : { type: "spring", damping: 22, stiffness: 280 }
               }
-              className={cn(
-                highlightTeamId === entry.teamId && "bg-muted/50"
-              )}
+              className={cn(highlightTeamId === entry.teamId && "bg-muted/50")}
             >
               <TableCell className="font-mono text-muted-foreground tabular-nums">
                 {index + 1}
               </TableCell>
               <TableCell>
-                <div className="font-medium">
-                  {entry.name ?? `Team ${entry.code}`}
-                </div>
-                <div className="text-muted-foreground font-mono text-xs">
-                  {entry.code}
-                </div>
+                <div className="font-medium">{entry.name ?? `Team ${entry.code}`}</div>
+                <div className="font-mono text-xs text-muted-foreground">{entry.code}</div>
               </TableCell>
               <TableCell className="text-right tabular-nums">
                 <ScoreCounter value={entry.score} />
               </TableCell>
-              <TableCell className="text-right tabular-nums hidden sm:table-cell">
+              <TableCell className="hidden text-right tabular-nums sm:table-cell">
                 {entry.goodIntervals}
               </TableCell>
             </MotionTableRow>
@@ -88,5 +80,5 @@ export function LeaderboardTable({
         </AnimatePresence>
       </TableBody>
     </Table>
-  )
+  );
 }

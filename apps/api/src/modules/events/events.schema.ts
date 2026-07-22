@@ -1,6 +1,6 @@
-import type { FastifySchema } from "fastify"
+import type { FastifySchema } from "fastify";
 
-const eventStatusEnum = ["draft", "active", "ended", "archived"]
+const eventStatusEnum = ["draft", "active", "ended", "archived"];
 
 const eventProps = {
   id: { type: "string" },
@@ -13,9 +13,9 @@ const eventProps = {
   submissionCap: { type: "integer" },
   status: { type: "string", enum: eventStatusEnum },
   createdAt: { type: "string" },
-} as const
+} as const;
 
-const eventObject = { type: "object", properties: eventProps } as const
+const eventObject = { type: "object", properties: eventProps } as const;
 
 const createBody = {
   type: "object",
@@ -26,7 +26,7 @@ const createBody = {
     teamSizeCap: { type: "integer", minimum: 1 },
     submissionCap: { type: "integer", minimum: 1 },
   },
-} as const
+} as const;
 
 const updateBody = {
   type: "object",
@@ -37,7 +37,7 @@ const updateBody = {
     submissionCap: { type: "integer", minimum: 1 },
     status: { type: "string", enum: eventStatusEnum },
   },
-} as const
+} as const;
 
 const startBody = {
   type: "object",
@@ -45,7 +45,7 @@ const startBody = {
   properties: {
     startsAt: { type: "string" },
   },
-} as const
+} as const;
 
 const addTimeBody = {
   type: "object",
@@ -53,7 +53,7 @@ const addTimeBody = {
   properties: {
     seconds: { type: "integer" },
   },
-} as const
+} as const;
 
 export const eventsSchema = {
   getActive: {
@@ -121,4 +121,4 @@ export const eventsSchema = {
     body: addTimeBody,
     response: { 200: eventObject },
   },
-} satisfies Record<string, FastifySchema>
+} satisfies Record<string, FastifySchema>;

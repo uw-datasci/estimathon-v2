@@ -4,8 +4,8 @@
  * Loads variables from `.env` (when present) and validates them against a JSON
  * schema. Exposes the result on `fastify.config`.
  */
-import type { FastifyInstance } from "fastify"
-import fastifyEnv from "@fastify/env"
+import type { FastifyInstance } from "fastify";
+import fastifyEnv from "@fastify/env";
 
 const schema = {
   type: "object",
@@ -16,12 +16,12 @@ const schema = {
     CORS_ORIGIN: { type: "string", default: "" },
     SUPABASE_URL: { type: "string", default: "" },
   },
-} as const
+} as const;
 
 export async function registerEnv(fastify: FastifyInstance) {
   await fastify.register(fastifyEnv, {
     confKey: "config",
     schema,
     dotenv: true,
-  })
+  });
 }

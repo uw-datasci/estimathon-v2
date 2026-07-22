@@ -1,32 +1,27 @@
-import type { Team } from "@estimathon/types"
-import { HttpError } from "../events/events.service"
-import { EventsRepository } from "../events/events.repository"
-import { QuestionsRepository } from "../questions/questions.repository"
-import { computeTeamScore } from "../../utils/scoring"
-import { SubmissionsRepository } from "../submissions/submissions.repository"
-import { TeamsRepository } from "./teams.repository"
-import type { AdminTeamDetail, CreateTeamInput } from "./teams.types"
+import type { Team } from "@estimathon/types";
+import { HttpError } from "../events/events.service";
+import { EventsRepository } from "../events/events.repository";
+import { QuestionsRepository } from "../questions/questions.repository";
+import { computeTeamScore } from "../../utils/scoring";
+import { SubmissionsRepository } from "../submissions/submissions.repository";
+import { TeamsRepository } from "./teams.repository";
+import type { AdminTeamDetail, CreateTeamInput } from "./teams.types";
 
-const CODE_MIN = 10_000
-const CODE_MAX = 99_999
-const CODE_ATTEMPTS = 25
+const CODE_MIN = 10_000;
+const CODE_MAX = 99_999;
+const CODE_ATTEMPTS = 25;
 
 function generateCode(): string {
-  return String(
-    Math.floor(Math.random() * (CODE_MAX - CODE_MIN + 1)) + CODE_MIN
-  )
+  return String(Math.floor(Math.random() * (CODE_MAX - CODE_MIN + 1)) + CODE_MIN);
 }
 
-async function assertTeamOperationsAllowed(
-  events: EventsRepository,
-  eventId: string
-) {
-  const event = await events.findById(eventId)
-  if (!event) throw new HttpError(404, "Event not found")
+async function assertTeamOperationsAllowed(events: EventsRepository, eventId: string) {
+  const event = await events.findById(eventId);
+  if (!event) throw new HttpError(404, "Event not found");
   if (event.status !== "active") {
-    throw new HttpError(400, "Event isn't open")
+    throw new HttpError(400, "Event isn't open");
   }
-  return event
+  return event;
 }
 
 export class TeamsService {
@@ -37,118 +32,104 @@ export class TeamsService {
     private readonly questions?: QuestionsRepository
   ) {}
 
-  async create(
-    eventId: string,
-    userId: string,
-    input: CreateTeamInput
-  ): Promise<Team> {
-    const event = await assertTeamOperationsAllowed(this.events, eventId)
+  async create(eventId: string, userId: string, input: CreateTeamInput): Promise<Team> {
+    const event = await assertTeamOperationsAllowed(this.events, eventId);
 
-    const existingMembership = await this.repository.getMembershipForUser(
-      userId,
-      eventId
-    )
+    const existingMembership = await this.repository.getMembershipForUser(userId, eventId);
     if (existingMembership) {
-      throw new HttpError(409, "You're already on a team for this event")
+      throw new HttpError(409, "You're already on a team for this event");
     }
 
     // Generate a unique 5-digit code with retry on collision
-    let code: string | null = null
+    let code: string | null = null;
     for (let attempt = 0; attempt < CODE_ATTEMPTS; attempt++) {
-      const candidate = generateCode()
-      const exists = await this.repository.codeExists(event.id, candidate)
+      const candidate = generateCode();
+      const exists = await this.repository.codeExists(event.id, candidate);
       if (!exists) {
-        code = candidate
-        break
+        code = candidate;
+        break;
       }
     }
-    if (!code) throw new HttpError(500, "Could not generate a unique team code")
+    if (!code) throw new HttpError(500, "Could not generate a unique team code");
 
     return this.repository.createWithCreator({
       eventId: event.id,
       code,
       name: input.name?.trim() || null,
       creatorUserId: userId,
-    })
+    });
   }
 
-  async joinByCode(
-    eventId: string,
-    code: string,
-    userId: string
-  ): Promise<Team> {
-    const event = await assertTeamOperationsAllowed(this.events, eventId)
+  async joinByCode(eventId: string, code: string, userId: string): Promise<Team> {
+    const event = await assertTeamOperationsAllowed(this.events, eventId);
 
-    const team = await this.repository.findByCode(event.id, code)
-    if (!team) throw new HttpError(404, "No team with that code")
+    const team = await this.repository.findByCode(event.id, code);
+    if (!team) throw new HttpError(404, "No team with that code");
 
-    const existingMembership = await this.repository.getMembershipForUser(
-      userId,
-      event.id
-    )
+    const existingMembership = await this.repository.getMembershipForUser(userId, event.id);
     if (existingMembership) {
-      if (existingMembership.team_id === team.id) return team
-      throw new HttpError(409, "You're already on another team for this event")
+      if (existingMembership.team_id === team.id) return team;
+      throw new HttpError(409, "You're already on another team for this event");
     }
 
-    const size = await this.repository.countMembers(team.id)
+    const size = await this.repository.countMembers(team.id);
     if (size >= event.teamSizeCap) {
-      throw new HttpError(409, "Team is full")
+      throw new HttpError(409, "Team is full");
     }
 
     await this.repository.addMember({
       teamId: team.id,
       eventId: event.id,
       userId,
-    })
-    return team
+    });
+    return team;
   }
 
   async leave(teamId: string, userId: string): Promise<void> {
-    const team = await this.repository.findById(teamId)
-    if (!team) throw new HttpError(404, "Team not found")
-    const event = await this.events.findById(team.eventId)
+    const team = await this.repository.findById(teamId);
+    if (!team) throw new HttpError(404, "Team not found");
+    const event = await this.events.findById(team.eventId);
     if (event && (event.status === "active" || event.status === "ended"))
-      throw new HttpError(400, "Can't leave during or after the game")
+      throw new HttpError(400, "Can't leave during or after the game");
 
-    await this.repository.removeMember(teamId, userId)
-    await this.repository.deleteIfEmpty(teamId)
+    await this.repository.removeMember(teamId, userId);
+    await this.repository.deleteIfEmpty(teamId);
   }
 
   async getDetail(
     teamId: string
   ): Promise<{ team: Team; members: { userId: string; joinedAt: string }[] }> {
-    const team = await this.repository.findById(teamId)
-    if (!team) throw new HttpError(404, "Team not found")
-    const rows = await this.repository.listMembers(teamId)
+    const team = await this.repository.findById(teamId);
+    if (!team) throw new HttpError(404, "Team not found");
+    const rows = await this.repository.listMembers(teamId);
     return {
       team,
       members: rows.map((r) => ({ userId: r.user_id, joinedAt: r.joined_at })),
-    }
+    };
   }
 
   async listForEventAdmin(eventId: string): Promise<AdminTeamDetail[]> {
     if (!this.submissions || !this.questions) {
-      throw new HttpError(500, "Admin teams not configured")
+      throw new HttpError(500, "Admin teams not configured");
     }
-    const event = await this.events.findById(eventId)
-    if (!event) throw new HttpError(404, "Event not found")
+    const event = await this.events.findById(eventId);
+    if (!event) throw new HttpError(404, "Event not found");
 
-    const teams = await this.repository.listForEvent(eventId)
+    const teams = await this.repository.listForEvent(eventId);
     const allQuestions = await this.questions.listForEvent(eventId, {
       includeAnswer: true,
-    })
+    });
     const questionInputs = allQuestions.map((q) => ({
       id: q.id,
       answer: q.answer ?? 0,
-    }))
+    }));
 
     return Promise.all(
       teams.map(async (team) => {
         const [memberRows, subs] = await Promise.all([
           this.repository.listMembers(team.id),
           this.submissions!.listForTeam(team.id),
-        ])
+        ]);
         const scored = computeTeamScore(
           subs.map((s) => ({
             questionId: s.questionId,
@@ -158,7 +139,7 @@ export class TeamsService {
           })),
           questionInputs,
           event.submissionCap
-        )
+        );
         return {
           team,
           members: memberRows.map((r) => ({
@@ -166,8 +147,8 @@ export class TeamsService {
             joinedAt: r.joined_at,
           })),
           score: { teamId: team.id, ...scored },
-        }
+        };
       })
-    )
+    );
   }
 }

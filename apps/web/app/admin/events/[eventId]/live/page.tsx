@@ -1,28 +1,28 @@
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@estimathon/ui/components/button"
-import { AdminShell } from "@/components/admin/admin-shell"
-import { LiveMonitor } from "@/components/admin/live-monitor"
-import { proxyApiJson } from "@/lib/api/proxy"
-import { getAccessToken } from "@/lib/auth/session"
-import type { Event, LeaderboardEntry } from "@estimathon/types"
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@estimathon/ui/components/button";
+import { AdminShell } from "@/components/admin/admin-shell";
+import { LiveMonitor } from "@/components/admin/live-monitor";
+import { proxyApiJson } from "@/lib/api/proxy";
+import { getAccessToken } from "@/lib/auth/session";
+import type { Event, LeaderboardEntry } from "@estimathon/types";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export default async function AdminLivePage({
   params,
 }: {
-  params: Promise<{ eventId: string }>
+  params: Promise<{ eventId: string }>;
 }) {
-  const { eventId } = await params
+  const { eventId } = await params;
   const [eventResult, leaderboardResult] = await Promise.all([
     proxyApiJson<Event>(`/events/${encodeURIComponent(eventId)}`),
     proxyApiJson<{ leaderboard: LeaderboardEntry[] }>(
       `/events/${encodeURIComponent(eventId)}/leaderboard`
     ),
-  ])
-  if (eventResult.status === 404 || !eventResult.data) notFound()
-  const accessToken = await getAccessToken()
+  ]);
+  if (eventResult.status === 404 || !eventResult.data) notFound();
+  const accessToken = await getAccessToken();
 
   return (
     <AdminShell
@@ -42,5 +42,5 @@ export default async function AdminLivePage({
         initialLeaderboard={leaderboardResult.data?.leaderboard ?? []}
       />
     </AdminShell>
-  )
+  );
 }

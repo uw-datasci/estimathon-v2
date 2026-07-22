@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { motion, useReducedMotion } from "motion/react"
-import { cn } from "@estimathon/ui/lib/utils"
+import { useEffect, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { cn } from "@estimathon/ui/lib/utils";
 
 interface TimerProps {
-  endsAt: string
+  endsAt: string;
   /** When set, the timer is frozen at `endsAt - pausedAt` and won't expire. */
-  pausedAt?: string | null
-  onExpire?: () => void
+  pausedAt?: string | null;
+  onExpire?: () => void;
 }
 
-const pad = (n: number) => String(n).padStart(2, "0")
+const pad = (n: number) => String(n).padStart(2, "0");
 
 function formatRemaining(ms: number) {
-  if (ms <= 0) return { totalSec: 0, h: 0, m: 0, s: 0 }
-  const totalSec = Math.floor(ms / 1000)
+  if (ms <= 0) return { totalSec: 0, h: 0, m: 0, s: 0 };
+  const totalSec = Math.floor(ms / 1000);
   return {
     totalSec,
     h: Math.floor(totalSec / 3600),
     m: Math.floor((totalSec % 3600) / 60),
     s: totalSec % 60,
-  }
+  };
 }
 
 /** Remaining ms to `endsAt`, frozen at `endsAt - pausedAt` while paused. */
 function remainingMs(endsAt: string, pausedAt: string | null | undefined) {
-  return Date.parse(endsAt) - (pausedAt ? Date.parse(pausedAt) : Date.now())
+  return Date.parse(endsAt) - (pausedAt ? Date.parse(pausedAt) : Date.now());
 }
 
 /**
@@ -41,64 +41,61 @@ function remainingMs(endsAt: string, pausedAt: string | null | undefined) {
  * `onExpire`.
  */
 export function Timer({ endsAt, pausedAt, onExpire }: TimerProps) {
-  const prefersReduced = useReducedMotion()
+  const prefersReduced = useReducedMotion();
   const [tickingRemaining, setTickingRemaining] = useState(() =>
     formatRemaining(remainingMs(endsAt, pausedAt))
-  )
+  );
 
   useEffect(() => {
-    if (pausedAt) return
+    if (pausedAt) return;
     const tick = () => {
-      const r = formatRemaining(remainingMs(endsAt, pausedAt))
-      setTickingRemaining(r)
-      if (r.totalSec <= 0) onExpire?.()
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [endsAt, pausedAt, onExpire])
+      const r = formatRemaining(remainingMs(endsAt, pausedAt));
+      setTickingRemaining(r);
+      if (r.totalSec <= 0) onExpire?.();
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [endsAt, pausedAt, onExpire]);
 
   // While paused the display is a pure function of props - no ticking
   // interval, so it's derived directly instead of round-tripping state.
   const remaining = pausedAt
     ? formatRemaining(remainingMs(endsAt, pausedAt))
-    : tickingRemaining
+    : tickingRemaining;
 
   const urgency =
-    remaining.totalSec <= 60
-      ? "critical"
-      : remaining.totalSec <= 300
-        ? "warning"
-        : "normal"
+    remaining.totalSec <= 60 ? "critical" : remaining.totalSec <= 300 ? "warning" : "normal";
 
-  const pulseAnimation = prefersReduced || pausedAt
-    ? undefined
-    : urgency === "critical"
-      ? {
-          scale: [1, 1.06, 1],
-          transition: {
-            duration: 0.6,
-            repeat: Infinity,
-            ease: "easeInOut" as const,
-          },
-        }
-      : urgency === "warning"
+  const pulseAnimation =
+    prefersReduced || pausedAt
+      ? undefined
+      : urgency === "critical"
         ? {
-            scale: [1, 1.03, 1],
+            scale: [1, 1.06, 1],
             transition: {
-              duration: 2,
+              duration: 0.6,
               repeat: Infinity,
               ease: "easeInOut" as const,
             },
           }
-        : undefined
+        : urgency === "warning"
+          ? {
+              scale: [1, 1.03, 1],
+              transition: {
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut" as const,
+              },
+            }
+          : undefined;
 
   const colorClass =
     urgency === "critical"
       ? "text-destructive"
       : urgency === "warning"
         ? "text-amber-600 dark:text-amber-500"
-        : "text-foreground"
+        : "text-foreground";
 
   return (
     <div className="flex items-baseline gap-2">
@@ -121,10 +118,8 @@ export function Timer({ endsAt, pausedAt, onExpire }: TimerProps) {
         <span>{pad(remaining.s)}</span>
       </motion.div>
       {pausedAt && (
-        <span className="text-muted-foreground text-xs uppercase tracking-widest">
-          Paused
-        </span>
+        <span className="text-xs tracking-widest text-muted-foreground uppercase">Paused</span>
       )}
     </div>
-  )
+  );
 }

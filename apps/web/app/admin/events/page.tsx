@@ -1,23 +1,18 @@
-import Link from "next/link"
-import { Button } from "@estimathon/ui/components/button"
-import { Badge } from "@estimathon/ui/components/badge"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@estimathon/ui/components/card"
-import { Plus } from "lucide-react"
-import { AdminShell } from "@/components/admin/admin-shell"
-import { proxyApiJson } from "@/lib/api/proxy"
-import type { Event } from "@estimathon/types"
-import { formatRange, statusVariant } from "@/lib/format/event"
+import Link from "next/link";
+import { Button } from "@estimathon/ui/components/button";
+import { Badge } from "@estimathon/ui/components/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@estimathon/ui/components/card";
+import { Plus } from "lucide-react";
+import { AdminShell } from "@/components/admin/admin-shell";
+import { proxyApiJson } from "@/lib/api/proxy";
+import type { Event } from "@estimathon/types";
+import { formatRange, statusVariant } from "@/lib/format/event";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export default async function EventsListPage() {
-  const result = await proxyApiJson<{ events: Event[] }>("/admin/events")
-  const events = result.data?.events ?? []
+  const result = await proxyApiJson<{ events: Event[] }>("/admin/events");
+  const events = result.data?.events ?? [];
 
   return (
     <AdminShell
@@ -33,26 +28,20 @@ export default async function EventsListPage() {
     >
       {events.length === 0 ? (
         <Card>
-          <CardContent className="text-muted-foreground py-12 text-center text-sm">
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
             No events yet. Create one to get started.
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-3">
           {events.map((event) => (
-            <Link
-              key={event.id}
-              href={`/admin/events/${event.id}`}
-              className="group"
-            >
+            <Link key={event.id} href={`/admin/events/${event.id}`} className="group">
               <Card className="transition-colors group-hover:bg-muted/40">
                 <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
                   <CardTitle className="text-base">{event.name}</CardTitle>
-                  <Badge variant={statusVariant(event.status)}>
-                    {event.status}
-                  </Badge>
+                  <Badge variant={statusVariant(event.status)}>{event.status}</Badge>
                 </CardHeader>
-                <CardContent className="text-muted-foreground text-sm">
+                <CardContent className="text-sm text-muted-foreground">
                   {formatRange(event.startsAt, event.endsAt)}
                 </CardContent>
               </Card>
@@ -61,5 +50,5 @@ export default async function EventsListPage() {
         </div>
       )}
     </AdminShell>
-  )
+  );
 }

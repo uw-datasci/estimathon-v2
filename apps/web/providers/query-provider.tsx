@@ -1,11 +1,7 @@
-"use client"
+"use client";
 
-import {
-  QueryClient,
-  QueryClientProvider,
-  isServer,
-} from "@tanstack/react-query"
-import { useState } from "react"
+import { QueryClient, QueryClientProvider, isServer } from "@tanstack/react-query";
+import { useState } from "react";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -16,19 +12,19 @@ function makeQueryClient() {
         retry: 1,
       },
     },
-  })
+  });
 }
 
-let browserQueryClient: QueryClient | undefined
+let browserQueryClient: QueryClient | undefined;
 
 function getQueryClient() {
-  if (isServer) return makeQueryClient()
-  if (!browserQueryClient) browserQueryClient = makeQueryClient()
-  return browserQueryClient
+  if (isServer) return makeQueryClient();
+  if (!browserQueryClient) browserQueryClient = makeQueryClient();
+  return browserQueryClient;
 }
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   // useState ensures we don't share a client between requests in SSR.
-  const [client] = useState(getQueryClient)
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  const [client] = useState(getQueryClient);
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }

@@ -1,27 +1,27 @@
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { AdminShell } from "@/components/admin/admin-shell"
-import { QuestionsEditor } from "@/components/admin/questions-editor"
-import { proxyApiJson } from "@/lib/api/proxy"
-import type { Event, Question } from "@estimathon/types"
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { AdminShell } from "@/components/admin/admin-shell";
+import { QuestionsEditor } from "@/components/admin/questions-editor";
+import { proxyApiJson } from "@/lib/api/proxy";
+import type { Event, Question } from "@estimathon/types";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export default async function EventQuestionsPage({
   params,
 }: {
-  params: Promise<{ eventId: string }>
+  params: Promise<{ eventId: string }>;
 }) {
-  const { eventId } = await params
+  const { eventId } = await params;
   const [eventResult, questionsResult] = await Promise.all([
     proxyApiJson<Event>(`/events/${encodeURIComponent(eventId)}`),
     proxyApiJson<{ questions: Question[] }>(
       `/admin/events/${encodeURIComponent(eventId)}/questions`
     ),
-  ])
-  if (eventResult.status === 404 || !eventResult.data) notFound()
-  const event = eventResult.data
-  const questions = questionsResult.data?.questions ?? []
+  ]);
+  if (eventResult.status === 404 || !eventResult.data) notFound();
+  const event = eventResult.data;
+  const questions = questionsResult.data?.questions ?? [];
 
   return (
     <AdminShell
@@ -36,10 +36,10 @@ export default async function EventQuestionsPage({
       }
     >
       <p className="mb-4 text-sm text-muted-foreground">
-        {questions.length}/{event.submissionCap} questions added - the
-        submission cap sets how many are required before the event can start.
+        {questions.length}/{event.submissionCap} questions added - the submission cap sets how
+        many are required before the event can start.
       </p>
       <QuestionsEditor eventId={event.id} questions={questions} />
     </AdminShell>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import type { FastifySchema } from "fastify"
+import type { FastifySchema } from "fastify";
 
 const leaderboardEntry = {
   type: "object",
@@ -21,7 +21,7 @@ const leaderboardEntry = {
       },
     },
   },
-} as const
+} as const;
 
 export const leaderboardSchema = {
   getForEvent: {
@@ -37,4 +37,4 @@ export const leaderboardSchema = {
       },
     },
   },
-} satisfies Record<string, FastifySchema>
+} satisfies Record<string, FastifySchema>;

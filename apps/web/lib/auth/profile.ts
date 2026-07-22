@@ -1,15 +1,15 @@
-import "server-only"
+import "server-only";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server"
-import type { Profile } from "@estimathon/types"
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { Profile } from "@estimathon/types";
 
 interface ProfileRow {
-  id: string
-  first_name: string | null
-  last_name: string | null
-  wat_iam: string | null
-  faculty: string | null
-  term: string | null
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  wat_iam: string | null;
+  faculty: string | null;
+  term: string | null;
 }
 
 /**
@@ -18,14 +18,14 @@ interface ProfileRow {
  * on the main site yet).
  */
 export async function getProfile(userId: string): Promise<Profile | null> {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("id, first_name, last_name, wat_iam, faculty, term")
     .eq("id", userId)
-    .maybeSingle<ProfileRow>()
+    .maybeSingle<ProfileRow>();
 
-  if (error || !data) return null
+  if (error || !data) return null;
   return {
     id: data.id,
     firstName: data.first_name,
@@ -33,5 +33,5 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     watIam: data.wat_iam,
     faculty: data.faculty,
     term: data.term,
-  }
+  };
 }

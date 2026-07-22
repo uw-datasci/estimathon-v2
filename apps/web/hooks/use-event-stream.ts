@@ -1,31 +1,26 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useQueryClient } from "@tanstack/react-query"
-import { clientConfig } from "@/config/client"
-import type {
-  LeaderboardEntry,
-  QuestionEvaluation,
-  ServerMessage,
-} from "@estimathon/types"
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { clientConfig } from "@/config/client";
+import type { LeaderboardEntry, QuestionEvaluation, ServerMessage } from "@estimathon/types";
 
-export const leaderboardQueryKey = (eventId: string) =>
-  ["leaderboard", eventId] as const
+export const leaderboardQueryKey = (eventId: string) => ["leaderboard", eventId] as const;
 
 interface UseEventStreamOptions {
-  eventId: string | null
-  accessToken: string | null
-  teamId?: string | null
+  eventId: string | null;
+  accessToken: string | null;
+  teamId?: string | null;
   onTeamScore?: (score: {
-    teamId: string
-    score: number
-    goodIntervals: number
-    submissionCount: number
-    evaluations: QuestionEvaluation[]
-  }) => void
-  onEventStatus?: (status: ServerMessage & { type: "event_status" }) => void
-  onSubmission?: (msg: ServerMessage & { type: "submission" }) => void
-  onEditing?: (msg: ServerMessage & { type: "editing" }) => void
+    teamId: string;
+    score: number;
+    goodIntervals: number;
+    submissionCount: number;
+    evaluations: QuestionEvaluation[];
+  }) => void;
+  onEventStatus?: (status: ServerMessage & { type: "event_status" }) => void;
+  onSubmission?: (msg: ServerMessage & { type: "submission" }) => void;
+  onEditing?: (msg: ServerMessage & { type: "editing" }) => void;
 }
 
 /**
@@ -41,31 +36,28 @@ export function useEventStream({
   onSubmission,
   onEditing,
 }: UseEventStreamOptions) {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!eventId || !accessToken) return
+    if (!eventId || !accessToken) return;
 
-    const url = new URL(
-      `/events/${encodeURIComponent(eventId)}/stream`,
-      clientConfig.apiUrl
-    )
-    url.searchParams.set("access_token", accessToken)
+    const url = new URL(`/events/${encodeURIComponent(eventId)}/stream`, clientConfig.apiUrl);
+    url.searchParams.set("access_token", accessToken);
 
-    const es = new EventSource(url.toString(), { withCredentials: true })
+    const es = new EventSource(url.toString(), { withCredentials: true });
 
     es.onmessage = (ev) => {
-      let msg: ServerMessage
+      let msg: ServerMessage;
       try {
-        msg = JSON.parse(ev.data) as ServerMessage
+        msg = JSON.parse(ev.data) as ServerMessage;
       } catch {
-        return
+        return;
       }
 
       switch (msg.type) {
         case "leaderboard":
-          queryClient.setQueryData(leaderboardQueryKey(eventId), msg.data)
-          break
+          queryClient.setQueryData(leaderboardQueryKey(eventId), msg.data);
+          break;
         case "team_score":
           if (teamId && msg.teamId === teamId) {
             const payload = {
@@ -74,26 +66,26 @@ export function useEventStream({
               goodIntervals: msg.goodIntervals,
               submissionCount: msg.submissionCount,
               evaluations: msg.evaluations,
-            }
-            queryClient.setQueryData(["teamScore", teamId], payload)
-            onTeamScore?.(payload)
+            };
+            queryClient.setQueryData(["teamScore", teamId], payload);
+            onTeamScore?.(payload);
           }
-          break
+          break;
         case "event_status":
-          onEventStatus?.(msg)
-          break
+          onEventStatus?.(msg);
+          break;
         case "submission":
-          onSubmission?.(msg)
-          break
+          onSubmission?.(msg);
+          break;
         case "editing":
-          if (!teamId || msg.teamId === teamId) onEditing?.(msg)
-          break
+          if (!teamId || msg.teamId === teamId) onEditing?.(msg);
+          break;
         default:
-          break
+          break;
       }
-    }
+    };
 
-    return () => es.close()
+    return () => es.close();
   }, [
     eventId,
     accessToken,
@@ -103,7 +95,7 @@ export function useEventStream({
     onEventStatus,
     onSubmission,
     onEditing,
-  ])
+  ]);
 }
 
 /**
@@ -124,7 +116,7 @@ export function postEditingPresence(
     editing,
     name: identity.name,
     avatarUrl: identity.avatarUrl,
-  })
+  });
   fetch(`/api/events/${encodeURIComponent(eventId)}/presence`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -133,18 +125,12 @@ export function postEditingPresence(
   }).catch(() => {
     // best-effort - a dropped call just means the outline disappears a
     // little later than ideal, or the sweep on the server clears it
-  })
+  });
 }
 
-export function useLeaderboardQuery(
-  eventId: string,
-  initial: LeaderboardEntry[]
-) {
-  const queryClient = useQueryClient()
+export function useLeaderboardQuery(eventId: string, initial: LeaderboardEntry[]) {
+  const queryClient = useQueryClient();
   return {
-    data:
-      queryClient.getQueryData<LeaderboardEntry[]>(
-        leaderboardQueryKey(eventId)
-      ) ?? initial,
-  }
+    data: queryClient.getQueryData<LeaderboardEntry[]>(leaderboardQueryKey(eventId)) ?? initial,
+  };
 }

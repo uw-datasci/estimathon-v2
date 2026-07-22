@@ -1,10 +1,6 @@
-import { query, queryOne } from "@estimathon/db"
-import type { Event } from "@estimathon/types"
-import type {
-  CreateEventInput,
-  EventRow,
-  UpdateEventInput,
-} from "./events.types"
+import { query, queryOne } from "@estimathon/db";
+import type { Event } from "@estimathon/types";
+import type { CreateEventInput, EventRow, UpdateEventInput } from "./events.types";
 
 export function rowToEvent(row: EventRow): Event {
   return {
@@ -18,15 +14,13 @@ export function rowToEvent(row: EventRow): Event {
     submissionCap: row.submission_cap,
     status: row.status,
     createdAt: row.created_at,
-  }
+  };
 }
 
 export class EventsRepository {
   async findById(id: string): Promise<Event | null> {
-    const row = await queryOne<EventRow>(`select * from events where id = $1`, [
-      id,
-    ])
-    return row ? rowToEvent(row) : null
+    const row = await queryOne<EventRow>(`select * from events where id = $1`, [id]);
+    return row ? rowToEvent(row) : null;
   }
 
   async findCurrent(): Promise<Event | null> {
@@ -36,15 +30,15 @@ export class EventsRepository {
        order by case status when 'active' then 0 else 1 end,
                 starts_at desc
        limit 1`
-    )
-    return row ? rowToEvent(row) : null
+    );
+    return row ? rowToEvent(row) : null;
   }
 
   async list(): Promise<Event[]> {
     const rows = await query<EventRow>(
       `select * from events order by starts_at desc nulls last`
-    )
-    return rows.map(rowToEvent)
+    );
+    return rows.map(rowToEvent);
   }
 
   async create(input: CreateEventInput): Promise<Event> {
@@ -53,43 +47,35 @@ export class EventsRepository {
          (name, duration_minutes, team_size_cap, submission_cap)
        values ($1, $2, $3, $4)
        returning *`,
-      [
-        input.name,
-        input.durationMinutes,
-        input.teamSizeCap ?? 5,
-        input.submissionCap ?? 18,
-      ]
-    )
-    if (!row) throw new Error("Insert returned no row")
-    return rowToEvent(row)
+      [input.name, input.durationMinutes, input.teamSizeCap ?? 5, input.submissionCap ?? 18]
+    );
+    if (!row) throw new Error("Insert returned no row");
+    return rowToEvent(row);
   }
 
   async update(id: string, input: UpdateEventInput): Promise<Event | null> {
-    const sets: string[] = []
-    const params: unknown[] = []
+    const sets: string[] = [];
+    const params: unknown[] = [];
     const push = (col: string, value: unknown) => {
-      params.push(value)
-      sets.push(`${col} = $${params.length}`)
-    }
-    if (input.name !== undefined) push("name", input.name)
-    if (input.startsAt !== undefined) push("starts_at", input.startsAt)
-    if (input.durationMinutes !== undefined)
-      push("duration_minutes", input.durationMinutes)
-    if (input.teamSizeCap !== undefined)
-      push("team_size_cap", input.teamSizeCap)
-    if (input.submissionCap !== undefined)
-      push("submission_cap", input.submissionCap)
-    if (input.status !== undefined) push("status", input.status)
-    if (input.endsAt !== undefined) push("ends_at", input.endsAt)
-    if (input.pausedAt !== undefined) push("paused_at", input.pausedAt)
+      params.push(value);
+      sets.push(`${col} = $${params.length}`);
+    };
+    if (input.name !== undefined) push("name", input.name);
+    if (input.startsAt !== undefined) push("starts_at", input.startsAt);
+    if (input.durationMinutes !== undefined) push("duration_minutes", input.durationMinutes);
+    if (input.teamSizeCap !== undefined) push("team_size_cap", input.teamSizeCap);
+    if (input.submissionCap !== undefined) push("submission_cap", input.submissionCap);
+    if (input.status !== undefined) push("status", input.status);
+    if (input.endsAt !== undefined) push("ends_at", input.endsAt);
+    if (input.pausedAt !== undefined) push("paused_at", input.pausedAt);
 
-    if (sets.length === 0) return this.findById(id)
+    if (sets.length === 0) return this.findById(id);
 
-    params.push(id)
+    params.push(id);
     const row = await queryOne<EventRow>(
       `update events set ${sets.join(", ")} where id = $${params.length} returning *`,
       params
-    )
-    return row ? rowToEvent(row) : null
+    );
+    return row ? rowToEvent(row) : null;
   }
 }

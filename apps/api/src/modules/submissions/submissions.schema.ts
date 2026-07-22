@@ -1,4 +1,4 @@
-import type { FastifySchema } from "fastify"
+import type { FastifySchema } from "fastify";
 
 const submissionObject = {
   type: "object",
@@ -11,7 +11,7 @@ const submissionObject = {
     maxValue: { type: "number" },
     submittedAt: { type: "string" },
   },
-} as const
+} as const;
 
 const teamScoreObject = {
   type: "object",
@@ -31,7 +31,7 @@ const teamScoreObject = {
       },
     },
   },
-} as const
+} as const;
 
 export const submissionsSchema = {
   submit: {
@@ -76,4 +76,4 @@ export const submissionsSchema = {
     params: { type: "object", properties: { id: { type: "string" } } },
     response: { 200: teamScoreObject },
   },
-} satisfies Record<string, FastifySchema>
+} satisfies Record<string, FastifySchema>;

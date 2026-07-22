@@ -1,18 +1,15 @@
-export { pool } from "./postgres"
+export { pool } from "./postgres";
 
-import { pool } from "./postgres"
+import { pool } from "./postgres";
 
 /**
  * Run a parameterized query and return the rows. Use template literals or
  * positional `$1`, `$2` placeholders - never interpolate values into the
  * query string.
  */
-export async function query<T>(
-  text: string,
-  params?: ReadonlyArray<unknown>
-): Promise<T[]> {
-  const result = await pool.query(text, params as unknown[])
-  return result.rows as T[]
+export async function query<T>(text: string, params?: ReadonlyArray<unknown>): Promise<T[]> {
+  const result = await pool.query(text, params as unknown[]);
+  return result.rows as T[];
 }
 
 /**
@@ -22,8 +19,8 @@ export async function queryOne<T>(
   text: string,
   params?: ReadonlyArray<unknown>
 ): Promise<T | null> {
-  const rows = await query<T>(text, params)
-  return rows[0] ?? null
+  const rows = await query<T>(text, params);
+  return rows[0] ?? null;
 }
 
 /**
@@ -32,25 +29,25 @@ export async function queryOne<T>(
  */
 export async function transaction<T>(
   fn: (tx: {
-    query: <U>(text: string, params?: ReadonlyArray<unknown>) => Promise<U[]>
+    query: <U>(text: string, params?: ReadonlyArray<unknown>) => Promise<U[]>;
   }) => Promise<T>
 ): Promise<T> {
-  const client = await pool.connect()
+  const client = await pool.connect();
   try {
-    await client.query("begin")
+    await client.query("begin");
     const tx = {
       query: async <U>(text: string, params?: ReadonlyArray<unknown>) => {
-        const result = await client.query(text, params as unknown[])
-        return result.rows as U[]
+        const result = await client.query(text, params as unknown[]);
+        return result.rows as U[];
       },
-    }
-    const out = await fn(tx)
-    await client.query("commit")
-    return out
+    };
+    const out = await fn(tx);
+    await client.query("commit");
+    return out;
   } catch (err) {
-    await client.query("rollback").catch(() => undefined)
-    throw err
+    await client.query("rollback").catch(() => undefined);
+    throw err;
   } finally {
-    client.release()
+    client.release();
   }
 }

@@ -1,4 +1,4 @@
-import type { FastifySchema } from "fastify"
+import type { FastifySchema } from "fastify";
 
 const teamObject = {
   type: "object",
@@ -9,7 +9,7 @@ const teamObject = {
     name: { type: ["string", "null"] },
     createdAt: { type: "string" },
   },
-} as const
+} as const;
 
 const teamDetailObject = {
   type: "object",
@@ -26,7 +26,7 @@ const teamDetailObject = {
       },
     },
   },
-} as const
+} as const;
 
 export const teamsSchema = {
   create: {
@@ -96,4 +96,4 @@ export const teamsSchema = {
       },
     },
   },
-} satisfies Record<string, FastifySchema>
+} satisfies Record<string, FastifySchema>;
