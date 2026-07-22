@@ -16,7 +16,7 @@ export function LandingHero({
   isLoggedIn,
   loginHref,
 }: Readonly<LandingHeroProps>) {
-  const isActive = event?.status === "active"
+  const isActive = event?.status === "active" && Boolean(event.endsAt)
 
   return (
     <div className="mx-auto flex min-h-svh max-w-2xl flex-col justify-center px-6 py-16">
@@ -32,7 +32,7 @@ export function LandingHero({
         blow it up.
       </p>
 
-      {isActive && event ? (
+      {isActive && event?.endsAt ? (
         <div className="mt-10 rounded-xl border bg-card p-6">
           <p className="text-sm font-medium">{event.name}</p>
           <p className="mt-1 text-sm text-muted-foreground">

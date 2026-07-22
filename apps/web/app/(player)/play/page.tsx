@@ -20,7 +20,8 @@ export default async function PlayPage() {
   if (!event) redirect("/")
   if (!team) redirect("/onboarding")
   if (event.status !== "active") redirect("/results")
-  if (Date.parse(event.startsAt) > Date.now()) redirect("/waiting")
+  if (!event.startsAt || Date.parse(event.startsAt) > Date.now())
+    redirect("/waiting")
 
   const [questionsResult, submissionsResult, scoreResult, leaderboardResult] =
     await Promise.all([

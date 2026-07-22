@@ -3,79 +3,79 @@
 -- only Supabase user.id (uuid) here; profile data is read from Supabase at
 -- request time.
 
-create extension if not exists pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Tournament instances.
 -- Lifecycle: draft → admin clicks Start → active → admin clicks End → ended → archived.
 -- The end of the game window is derived: starts_at + duration_minutes. This way,
 -- rescheduling the start automatically shifts the end with it.
-create table events (
-  id                uuid primary key default gen_random_uuid(),
-  name              text not null,
-  starts_at         timestamptz not null,
-  duration_minutes  int  not null default 60 check (duration_minutes > 0),
-  team_size_cap     int  not null default 5,
-  submission_cap    int  not null default 18,
-  question_count    int  not null default 13,
-  status            text not null default 'draft'
-                      check (status in ('draft','active','ended','archived')),
-  created_at        timestamptz not null default now()
+CREATE TABLE events (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name              text NOT NULL,
+  starts_at         timestamptz NOT NULL,
+  duration_minutes  int  NOT NULL DEFAULT 60 CHECK (duration_minutes > 0),
+  team_size_cap     int  NOT NULL DEFAULT 5,
+  submission_cap    int  NOT NULL DEFAULT 18,
+  question_count    int  NOT NULL DEFAULT 13,
+  status            text NOT NULL DEFAULT 'draft'
+                      CHECK (status IN ('draft','active','ended','archived')),
+  created_at        timestamptz NOT NULL DEFAULT now()
 );
 
-create index on events (status, starts_at desc);
+CREATE INDEX ON events (status, starts_at DESC);
 
 -- Teams within an event
-create table teams (
-  id          uuid primary key default gen_random_uuid(),
-  event_id    uuid not null references events(id) on delete cascade,
-  code        text not null,
+CREATE TABLE teams (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id    uuid NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  code        text NOT NULL,
   name        text,
-  created_at  timestamptz not null default now(),
-  unique (event_id, code)
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (event_id, code)
 );
 
-create index on teams (event_id);
+CREATE INDEX ON teams (event_id);
 
 -- Team memberships. event_id is denormalized so we can enforce the
 -- "one team per user per event" rule without a multi-table check.
-create table team_members (
-  team_id    uuid not null references teams(id) on delete cascade,
-  event_id   uuid not null references events(id) on delete cascade,
-  user_id    uuid not null,
-  joined_at  timestamptz not null default now(),
-  primary key (team_id, user_id),
-  unique (event_id, user_id)
+CREATE TABLE team_members (
+  team_id    uuid NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  event_id   uuid NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  user_id    uuid NOT NULL,
+  joined_at  timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (team_id, user_id),
+  UNIQUE (event_id, user_id)
 );
 
-create index on team_members (user_id);
-create index on team_members (event_id);
+CREATE INDEX ON team_members (user_id);
+CREATE INDEX ON team_members (event_id);
 
 -- Questions per event
-create table questions (
-  id           uuid primary key default gen_random_uuid(),
-  event_id     uuid not null references events(id) on delete cascade,
-  position     int  not null,
-  prompt       text not null,
-  answer       numeric not null,
+CREATE TABLE questions (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id     uuid NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  position     int  NOT NULL,
+  prompt       text NOT NULL,
+  answer       numeric NOT NULL,
   released_at  timestamptz,
-  created_at   timestamptz not null default now(),
-  unique (event_id, position)
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (event_id, position)
 );
 
-create index on questions (event_id, position);
+CREATE INDEX ON questions (event_id, position);
 
 -- Submissions (history of range guesses; scoring uses latest per question)
-create table submissions (
-  id            bigserial primary key,
-  team_id       uuid not null references teams(id) on delete cascade,
-  question_id   uuid not null references questions(id) on delete cascade,
-  user_id       uuid not null,
-  min_value     numeric not null,
-  max_value     numeric not null,
-  submitted_at  timestamptz not null default now(),
-  check (min_value > 0 and max_value >= min_value)
+CREATE TABLE submissions (
+  id            bigserial PRIMARY KEY,
+  team_id       uuid NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  question_id   uuid NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  user_id       uuid NOT NULL,
+  min_value     numeric NOT NULL,
+  max_value     numeric NOT NULL,
+  submitted_at  timestamptz NOT NULL DEFAULT now(),
+  CHECK (min_value > 0 AND max_value >= min_value)
 );
 
-create index on submissions (team_id, submitted_at desc);
-create index on submissions (question_id);
-create index on submissions (team_id, question_id, submitted_at desc);
+CREATE INDEX ON submissions (team_id, submitted_at DESC);
+CREATE INDEX ON submissions (question_id);
+CREATE INDEX ON submissions (team_id, question_id, submitted_at DESC);

@@ -46,7 +46,7 @@ export class LeaderboardService {
             submittedAt: s.submittedAt,
           })),
           questionInputs,
-          event.questionCount
+          event.submissionCap
         )
         return {
           teamId: team.id,

@@ -8,7 +8,11 @@ const dateFormatter = new Intl.DateTimeFormat("en-CA", {
   minute: "2-digit",
 })
 
-export function formatRange(startsAt: string, endsAt: string): string {
+export function formatRange(
+  startsAt: string | null,
+  endsAt: string | null
+): string {
+  if (!startsAt || !endsAt) return "Not started"
   const start = new Date(startsAt)
   const end = new Date(endsAt)
   return `${dateFormatter.format(start)} → ${dateFormatter.format(end)}`

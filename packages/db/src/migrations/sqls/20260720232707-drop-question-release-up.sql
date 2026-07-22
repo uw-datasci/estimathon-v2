@@ -1,1 +1,1 @@
-alter table questions drop column released_at;
+ALTER TABLE questions DROP COLUMN released_at;

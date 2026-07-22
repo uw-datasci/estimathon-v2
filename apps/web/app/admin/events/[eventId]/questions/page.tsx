@@ -35,6 +35,10 @@ export default async function EventQuestionsPage({
         </Link>
       }
     >
+      <p className="mb-4 text-sm text-muted-foreground">
+        {questions.length}/{event.submissionCap} questions added - the
+        submission cap sets how many are required before the event can start.
+      </p>
       <QuestionsEditor eventId={event.id} questions={questions} />
     </AdminShell>
   )

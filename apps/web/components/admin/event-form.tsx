@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useForm, useWatch } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
@@ -10,32 +10,19 @@ import { Button } from "@estimathon/ui/components/button"
 import { Input } from "@estimathon/ui/components/input"
 import { Label } from "@estimathon/ui/components/label"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@estimathon/ui/components/select"
-import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
 } from "@estimathon/ui/components/card"
-import type { Event, EventStatus } from "@estimathon/types"
-import { toLocalInput, fromLocalInput } from "@/lib/format/event"
-
-const STATUSES: EventStatus[] = ["draft", "active", "ended", "archived"]
+import type { Event } from "@estimathon/types"
 
 const schema = z.object({
   name: z.string().min(1, "Required"),
-  startsAt: z.string().min(1, "Required"),
   durationMinutes: z.coerce.number().int().positive(),
   teamSizeCap: z.coerce.number().int().positive(),
   submissionCap: z.coerce.number().int().positive(),
-  questionCount: z.coerce.number().int().positive(),
-  status: z.enum(["draft", "active", "ended", "archived"]),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -54,12 +41,9 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: initial?.name ?? "",
-      startsAt: toLocalInput(initial?.startsAt),
       durationMinutes: initial?.durationMinutes ?? 60,
       teamSizeCap: initial?.teamSizeCap ?? 5,
       submissionCap: initial?.submissionCap ?? 18,
-      questionCount: initial?.questionCount ?? 13,
-      status: initial?.status ?? "draft",
     },
   })
 
@@ -68,12 +52,9 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
     try {
       const body = {
         name: values.name,
-        startsAt: fromLocalInput(values.startsAt),
         durationMinutes: values.durationMinutes,
         teamSizeCap: values.teamSizeCap,
         submissionCap: values.submissionCap,
-        questionCount: values.questionCount,
-        status: values.status,
       }
       const url =
         mode === "create"
@@ -100,8 +81,7 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
     }
   }
 
-  const { register, handleSubmit, setValue, control, formState } = form
-  const status = useWatch({ control, name: "status" })
+  const { register, handleSubmit, formState } = form
   const errors = formState.errors
 
   let submitLabel: string
@@ -118,7 +98,10 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Basics</CardTitle>
-          <CardDescription>Name and schedule.</CardDescription>
+          <CardDescription>
+            Name and duration. The event is created as a draft - use the
+            Start button on the event page once its questions are ready.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
@@ -133,34 +116,19 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
             )}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="startsAt">Starts at</Label>
-              <Input
-                id="startsAt"
-                type="datetime-local"
-                {...register("startsAt")}
-              />
-              {errors.startsAt && (
-                <p className="text-xs text-destructive">
-                  {errors.startsAt.message}
-                </p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="durationMinutes">Duration (minutes)</Label>
-              <Input
-                id="durationMinutes"
-                type="number"
-                min={1}
-                {...register("durationMinutes")}
-              />
-              {errors.durationMinutes && (
-                <p className="text-xs text-destructive">
-                  {errors.durationMinutes.message}
-                </p>
-              )}
-            </div>
+          <div className="grid gap-2 sm:max-w-xs">
+            <Label htmlFor="durationMinutes">Duration (minutes)</Label>
+            <Input
+              id="durationMinutes"
+              type="number"
+              min={1}
+              {...register("durationMinutes")}
+            />
+            {errors.durationMinutes && (
+              <p className="text-xs text-destructive">
+                {errors.durationMinutes.message}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -169,10 +137,11 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
         <CardHeader>
           <CardTitle className="text-base">Rules</CardTitle>
           <CardDescription>
-            Caps and the number of estimation questions.
+            The submission cap also sets the number of questions - add
+            exactly that many questions before starting the event.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+        <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="teamSizeCap">Team size cap</Label>
             <Input
@@ -190,45 +159,6 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
               min={1}
               {...register("submissionCap")}
             />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="questionCount">Question count</Label>
-            <Input
-              id="questionCount"
-              type="number"
-              min={1}
-              {...register("questionCount")}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Status</CardTitle>
-          <CardDescription>
-            Draft → Active → Ended → Archived. Use the Start / End buttons on
-            the event page for the common lifecycle changes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-2 sm:max-w-xs">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={status}
-              onValueChange={(v) => setValue("status", v as EventStatus)}
-            >
-              <SelectTrigger id="status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>

@@ -25,6 +25,10 @@ export class EventsController {
     this.list = this.list.bind(this)
     this.create = this.create.bind(this)
     this.update = this.update.bind(this)
+    this.start = this.start.bind(this)
+    this.pause = this.pause.bind(this)
+    this.resume = this.resume.bind(this)
+    this.addTime = this.addTime.bind(this)
   }
 
   async getActive(_request: FastifyRequest, reply: FastifyReply) {
@@ -55,5 +59,27 @@ export class EventsController {
     const { id } = request.params as { id: string }
     const body = request.body as UpdateEventInput
     return handle(reply, () => this.service.update(id, body))
+  }
+
+  async start(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string }
+    const { startsAt } = request.body as { startsAt: string }
+    return handle(reply, () => this.service.start(id, startsAt))
+  }
+
+  async pause(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string }
+    return handle(reply, () => this.service.pause(id))
+  }
+
+  async resume(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string }
+    return handle(reply, () => this.service.resume(id))
+  }
+
+  async addTime(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string }
+    const { seconds } = request.body as { seconds: number }
+    return handle(reply, () => this.service.addTime(id, seconds))
   }
 }

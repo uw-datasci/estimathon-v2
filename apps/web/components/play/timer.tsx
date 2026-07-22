@@ -6,6 +6,8 @@ import { cn } from "@estimathon/ui/lib/utils"
 
 interface TimerProps {
   endsAt: string
+  /** When set, the timer is frozen at `endsAt - pausedAt` and won't expire. */
+  pausedAt?: string | null
   onExpire?: () => void
 }
 
@@ -22,6 +24,11 @@ function formatRemaining(ms: number) {
   }
 }
 
+/** Remaining ms to `endsAt`, frozen at `endsAt - pausedAt` while paused. */
+function remainingMs(endsAt: string, pausedAt: string | null | undefined) {
+  return Date.parse(endsAt) - (pausedAt ? Date.parse(pausedAt) : Date.now())
+}
+
 /**
  * Countdown to the event's end. Pulse animation that intensifies as time
  * runs out:
@@ -29,24 +36,33 @@ function formatRemaining(ms: number) {
  *   1–5 min - gentle pulse, 2s cycle
  *   < 1 min - sharper pulse, 0.6s cycle
  *
- * Tone shifts via Tailwind colors at the same thresholds.
+ * Tone shifts via Tailwind colors at the same thresholds. While `pausedAt`
+ * is set, the display freezes at the remaining time and doesn't fire
+ * `onExpire`.
  */
-export function Timer({ endsAt, onExpire }: TimerProps) {
+export function Timer({ endsAt, pausedAt, onExpire }: TimerProps) {
   const prefersReduced = useReducedMotion()
-  const [remaining, setRemaining] = useState(() =>
-    formatRemaining(Date.parse(endsAt) - Date.now())
+  const [tickingRemaining, setTickingRemaining] = useState(() =>
+    formatRemaining(remainingMs(endsAt, pausedAt))
   )
 
   useEffect(() => {
+    if (pausedAt) return
     const tick = () => {
-      const r = formatRemaining(Date.parse(endsAt) - Date.now())
-      setRemaining(r)
+      const r = formatRemaining(remainingMs(endsAt, pausedAt))
+      setTickingRemaining(r)
       if (r.totalSec <= 0) onExpire?.()
     }
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [endsAt, onExpire])
+  }, [endsAt, pausedAt, onExpire])
+
+  // While paused the display is a pure function of props - no ticking
+  // interval, so it's derived directly instead of round-tripping state.
+  const remaining = pausedAt
+    ? formatRemaining(remainingMs(endsAt, pausedAt))
+    : tickingRemaining
 
   const urgency =
     remaining.totalSec <= 60
@@ -55,7 +71,7 @@ export function Timer({ endsAt, onExpire }: TimerProps) {
         ? "warning"
         : "normal"
 
-  const pulseAnimation = prefersReduced
+  const pulseAnimation = prefersReduced || pausedAt
     ? undefined
     : urgency === "critical"
       ? {
@@ -85,23 +101,30 @@ export function Timer({ endsAt, onExpire }: TimerProps) {
         : "text-foreground"
 
   return (
-    <motion.div
-      animate={pulseAnimation}
-      className={cn(
-        "flex items-baseline gap-1 font-mono text-2xl tabular-nums sm:text-3xl",
-        colorClass
+    <div className="flex items-baseline gap-2">
+      <motion.div
+        animate={pulseAnimation}
+        className={cn(
+          "flex items-baseline gap-1 font-mono text-2xl tabular-nums sm:text-3xl",
+          colorClass
+        )}
+        aria-label={pausedAt ? "Time remaining (paused)" : "Time remaining"}
+      >
+        {remaining.h > 0 && (
+          <>
+            <span>{pad(remaining.h)}</span>
+            <span className="text-muted-foreground">:</span>
+          </>
+        )}
+        <span>{pad(remaining.m)}</span>
+        <span className="text-muted-foreground">:</span>
+        <span>{pad(remaining.s)}</span>
+      </motion.div>
+      {pausedAt && (
+        <span className="text-muted-foreground text-xs uppercase tracking-widest">
+          Paused
+        </span>
       )}
-      aria-label="Time remaining"
-    >
-      {remaining.h > 0 && (
-        <>
-          <span>{pad(remaining.h)}</span>
-          <span className="text-muted-foreground">:</span>
-        </>
-      )}
-      <span>{pad(remaining.m)}</span>
-      <span className="text-muted-foreground">:</span>
-      <span>{pad(remaining.s)}</span>
-    </motion.div>
+    </div>
   )
 }

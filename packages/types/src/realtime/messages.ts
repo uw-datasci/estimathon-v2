@@ -23,8 +23,9 @@ export type ServerMessage =
       type: "event_status"
       eventId: string
       status: EventStatus
-      startsAt: string
-      endsAt: string
+      startsAt: string | null
+      endsAt: string | null
+      pausedAt: string | null
     }
   | { type: "announcement"; eventId: string; message: string }
   | {

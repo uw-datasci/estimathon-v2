@@ -38,8 +38,14 @@ export class SubmissionsService {
       throw new HttpError(400, "Event isn't active")
     }
     const now = Date.now()
+    if (!event.startsAt || !event.endsAt) {
+      throw new HttpError(400, "Event hasn't started")
+    }
     if (now < Date.parse(event.startsAt) || now > Date.parse(event.endsAt)) {
       throw new HttpError(400, "Outside event window")
+    }
+    if (event.pausedAt) {
+      throw new HttpError(400, "Event is paused")
     }
 
     // Submission cap
@@ -146,7 +152,7 @@ export class SubmissionsService {
         submittedAt: s.submittedAt,
       })),
       allQuestions.map((q) => ({ id: q.id, answer: q.answer ?? 0 })),
-      event.questionCount
+      event.submissionCap
     )
     return { teamId, ...result }
   }

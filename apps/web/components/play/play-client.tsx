@@ -61,13 +61,19 @@ export function PlayClient({
   const [editingByQuestion, setEditingByQuestion] = useState<
     Map<string, EditingPresence[]>
   >(new Map())
+  const [timing, setTiming] = useState({
+    endsAt: event.endsAt,
+    pausedAt: event.pausedAt,
+  })
 
   const onEventStatus = useCallback(
-    (msg: { status: Event["status"] }) => {
+    (msg: ServerMessage & { type: "event_status" }) => {
       if (msg.status === "ended" || msg.status === "archived") {
         toast.info("Event ended")
         router.push("/results")
+        return
       }
+      setTiming({ endsAt: msg.endsAt, pausedAt: msg.pausedAt })
     },
     [router]
   )
@@ -119,7 +125,7 @@ export function PlayClient({
     [score.evaluations]
   )
   const remaining = Math.max(0, event.submissionCap - score.submissionCount)
-  const locked = expired || remaining <= 0
+  const locked = expired || remaining <= 0 || Boolean(timing.pausedAt)
 
   async function handleSubmit(
     questionId: string,
@@ -127,7 +133,13 @@ export function PlayClient({
     max: number
   ) {
     if (locked) {
-      toast.error(expired ? "Time's up" : "Out of guesses")
+      toast.error(
+        expired
+          ? "Time's up"
+          : timing.pausedAt
+            ? "Event is paused"
+            : "Out of guesses"
+      )
       return
     }
     const res = await fetch("/api/submissions", {
@@ -174,13 +186,18 @@ export function PlayClient({
             </span>
           </h1>
         </div>
-        <Timer endsAt={event.endsAt} onExpire={handleExpire} />
+        {/* PlayClient only renders for an active event, which always has a
+            timer running - endsAt is guaranteed set at that point. */}
+        <Timer
+          endsAt={timing.endsAt!}
+          pausedAt={timing.pausedAt}
+          onExpire={handleExpire}
+        />
       </div>
 
       <ScorePanel
         score={score.score}
         goodIntervals={score.goodIntervals}
-        questionCount={event.questionCount}
         submissionCount={score.submissionCount}
         submissionCap={event.submissionCap}
       />

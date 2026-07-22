@@ -4,7 +4,6 @@ import { ScoreCounter } from "./score-counter"
 interface ScorePanelProps {
   score: number
   goodIntervals: number
-  questionCount: number
   submissionCount: number
   submissionCap: number
 }
@@ -12,7 +11,6 @@ interface ScorePanelProps {
 export function ScorePanel({
   score,
   goodIntervals,
-  questionCount,
   submissionCount,
   submissionCap,
 }: ScorePanelProps) {
@@ -29,7 +27,7 @@ export function ScorePanel({
             label="Correct intervals"
             value={
               <span className="font-semibold tabular-nums">
-                {goodIntervals}/{questionCount}
+                {goodIntervals}/{submissionCap}
               </span>
             }
           />

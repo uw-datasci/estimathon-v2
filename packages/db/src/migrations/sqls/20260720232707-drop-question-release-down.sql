@@ -1,1 +1,1 @@
-alter table questions add column released_at timestamptz;
+ALTER TABLE questions ADD COLUMN released_at timestamptz;

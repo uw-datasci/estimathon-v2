@@ -7,17 +7,15 @@ import type {
 } from "./events.types"
 
 export function rowToEvent(row: EventRow): Event {
-  const startMs = new Date(row.starts_at).getTime()
-  const endsAt = new Date(startMs + row.duration_minutes * 60_000).toISOString()
   return {
     id: row.id,
     name: row.name,
     startsAt: row.starts_at,
     durationMinutes: row.duration_minutes,
-    endsAt,
+    endsAt: row.ends_at,
+    pausedAt: row.paused_at,
     teamSizeCap: row.team_size_cap,
     submissionCap: row.submission_cap,
-    questionCount: row.question_count,
     status: row.status,
     createdAt: row.created_at,
   }
@@ -44,7 +42,7 @@ export class EventsRepository {
 
   async list(): Promise<Event[]> {
     const rows = await query<EventRow>(
-      `select * from events order by starts_at desc`
+      `select * from events order by starts_at desc nulls last`
     )
     return rows.map(rowToEvent)
   }
@@ -52,18 +50,14 @@ export class EventsRepository {
   async create(input: CreateEventInput): Promise<Event> {
     const row = await queryOne<EventRow>(
       `insert into events
-         (name, starts_at, duration_minutes,
-          team_size_cap, submission_cap, question_count, status)
-       values ($1, $2, $3, $4, $5, $6, $7)
+         (name, duration_minutes, team_size_cap, submission_cap)
+       values ($1, $2, $3, $4)
        returning *`,
       [
         input.name,
-        input.startsAt,
         input.durationMinutes,
         input.teamSizeCap ?? 5,
         input.submissionCap ?? 18,
-        input.questionCount ?? 13,
-        input.status ?? "draft",
       ]
     )
     if (!row) throw new Error("Insert returned no row")
@@ -85,9 +79,9 @@ export class EventsRepository {
       push("team_size_cap", input.teamSizeCap)
     if (input.submissionCap !== undefined)
       push("submission_cap", input.submissionCap)
-    if (input.questionCount !== undefined)
-      push("question_count", input.questionCount)
     if (input.status !== undefined) push("status", input.status)
+    if (input.endsAt !== undefined) push("ends_at", input.endsAt)
+    if (input.pausedAt !== undefined) push("paused_at", input.pausedAt)
 
     if (sets.length === 0) return this.findById(id)
 

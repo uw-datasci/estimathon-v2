@@ -13,7 +13,7 @@ import { EventForm } from "@/components/admin/event-form"
 import { EventLifecycleActions } from "@/components/admin/event-lifecycle-actions"
 import { proxyApiJson } from "@/lib/api/proxy"
 import { formatRange, statusVariant } from "@/lib/format/event"
-import type { Event } from "@estimathon/types"
+import type { Event, Question } from "@estimathon/types"
 
 export const dynamic = "force-dynamic"
 
@@ -23,11 +23,15 @@ export default async function EventDetailPage({
   params: Promise<{ eventId: string }>
 }) {
   const { eventId } = await params
-  const result = await proxyApiJson<Event>(
-    `/events/${encodeURIComponent(eventId)}`
-  )
-  if (result.status === 404 || !result.data) notFound()
-  const event = result.data
+  const [eventResult, questionsResult] = await Promise.all([
+    proxyApiJson<Event>(`/events/${encodeURIComponent(eventId)}`),
+    proxyApiJson<{ questions: Question[] }>(
+      `/admin/events/${encodeURIComponent(eventId)}/questions`
+    ),
+  ])
+  if (eventResult.status === 404 || !eventResult.data) notFound()
+  const event = eventResult.data
+  const questionsCount = questionsResult.data?.questions.length ?? 0
 
   return (
     <AdminShell
@@ -35,7 +39,7 @@ export default async function EventDetailPage({
       actions={
         <div className="flex items-center gap-2">
           <Badge variant={statusVariant(event.status)}>{event.status}</Badge>
-          <EventLifecycleActions event={event} />
+          <EventLifecycleActions event={event} questionsCount={questionsCount} />
         </div>
       }
     >
@@ -54,7 +58,9 @@ export default async function EventDetailPage({
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide">Questions</dt>
-                <dd className="text-foreground">{event.questionCount}</dd>
+                <dd className="text-foreground">
+                  {questionsCount}/{event.submissionCap}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide">Team cap</dt>

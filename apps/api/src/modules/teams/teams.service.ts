@@ -157,7 +157,7 @@ export class TeamsService {
             submittedAt: s.submittedAt,
           })),
           questionInputs,
-          event.questionCount
+          event.submissionCap
         )
         return {
           team,

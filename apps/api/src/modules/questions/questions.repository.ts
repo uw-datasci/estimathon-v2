@@ -34,6 +34,14 @@ export class QuestionsRepository {
     return rows.map((r) => rowToQuestion(r, options.includeAnswer))
   }
 
+  async countForEvent(eventId: string): Promise<number> {
+    const row = await queryOne<{ count: string }>(
+      `select count(*) as count from questions where event_id = $1`,
+      [eventId]
+    )
+    return Number(row?.count ?? 0)
+  }
+
   async nextPosition(eventId: string): Promise<number> {
     const row = await queryOne<{ max: number | null }>(
       `select max(position) as max from questions where event_id = $1`,
