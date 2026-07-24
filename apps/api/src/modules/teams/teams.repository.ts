@@ -2,20 +2,20 @@ import { pool, query, queryOne, transaction } from "@estimathon/db";
 import type { Team } from "@estimathon/types";
 import type { TeamMemberRow, TeamRow } from "./teams.types";
 
-function rowToTeam(row: TeamRow): Team {
-  return {
-    id: row.id,
-    eventId: row.event_id,
-    code: row.code,
-    name: row.name,
-    createdAt: row.created_at,
-  };
-}
-
 export class TeamsRepository {
+  private static rowToTeam(row: TeamRow): Team {
+    return {
+      id: row.id,
+      eventId: row.event_id,
+      code: row.code,
+      name: row.name,
+      createdAt: row.created_at,
+    };
+  }
+
   async findById(id: string): Promise<Team | null> {
     const row = await queryOne<TeamRow>(`select * from teams where id = $1`, [id]);
-    return row ? rowToTeam(row) : null;
+    return row ? TeamsRepository.rowToTeam(row) : null;
   }
 
   async listForEvent(eventId: string): Promise<Team[]> {
@@ -23,7 +23,7 @@ export class TeamsRepository {
       `select * from teams where event_id = $1 order by created_at asc`,
       [eventId]
     );
-    return rows.map(rowToTeam);
+    return rows.map(TeamsRepository.rowToTeam);
   }
 
   async findByCode(eventId: string, code: string): Promise<Team | null> {
@@ -31,7 +31,7 @@ export class TeamsRepository {
       `select * from teams where event_id = $1 and code = $2`,
       [eventId, code]
     );
-    return row ? rowToTeam(row) : null;
+    return row ? TeamsRepository.rowToTeam(row) : null;
   }
 
   async codeExists(eventId: string, code: string): Promise<boolean> {
@@ -47,6 +47,17 @@ export class TeamsRepository {
       `select * from team_members where user_id = $1 and event_id = $2`,
       [userId, eventId]
     );
+  }
+
+  /** The user's team for a given event, if any. */
+  async getTeamForUser(userId: string, eventId: string): Promise<Team | null> {
+    const row = await queryOne<TeamRow>(
+      `select t.* from teams t
+       join team_members m on m.team_id = t.id
+       where m.user_id = $1 and m.event_id = $2`,
+      [userId, eventId]
+    );
+    return row ? TeamsRepository.rowToTeam(row) : null;
   }
 
   async countMembers(teamId: string): Promise<number> {
@@ -83,7 +94,7 @@ export class TeamsRepository {
         `insert into team_members (team_id, event_id, user_id) values ($1, $2, $3)`,
         [teamRow.id, input.eventId, input.creatorUserId]
       );
-      return rowToTeam(teamRow);
+      return TeamsRepository.rowToTeam(teamRow);
     });
   }
 

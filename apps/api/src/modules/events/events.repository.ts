@@ -2,43 +2,53 @@ import { query, queryOne } from "@estimathon/db";
 import type { Event } from "@estimathon/types";
 import type { CreateEventInput, EventRow, UpdateEventInput } from "./events.types";
 
-export function rowToEvent(row: EventRow): Event {
-  return {
-    id: row.id,
-    name: row.name,
-    startsAt: row.starts_at,
-    durationMinutes: row.duration_minutes,
-    endsAt: row.ends_at,
-    pausedAt: row.paused_at,
-    teamSizeCap: row.team_size_cap,
-    submissionCap: row.submission_cap,
-    status: row.status,
-    createdAt: row.created_at,
-  };
-}
-
 export class EventsRepository {
-  async findById(id: string): Promise<Event | null> {
-    const row = await queryOne<EventRow>(`select * from events where id = $1`, [id]);
-    return row ? rowToEvent(row) : null;
+  private static readonly recentlyEndedWindowHours = 24;
+
+  private static rowToEvent(row: EventRow): Event {
+    return {
+      id: row.id,
+      name: row.name,
+      startsAt: row.starts_at,
+      durationMinutes: row.duration_minutes,
+      endsAt: row.ends_at,
+      pausedAt: row.paused_at,
+      teamSizeCap: row.team_size_cap,
+      submissionCap: row.submission_cap,
+      status: row.status,
+      createdAt: row.created_at,
+    };
   }
 
+  async findById(id: string): Promise<Event | null> {
+    const row = await queryOne<EventRow>(`select * from events where id = $1`, [id]);
+    return row ? EventsRepository.rowToEvent(row) : null;
+  }
+
+  /**
+   * Latest player-visible event: active, or ended within the recent window.
+   * Drafts and archived events are excluded.
+   */
   async findCurrent(): Promise<Event | null> {
     const row = await queryOne<EventRow>(
       `select * from events
-       where status in ('active','ended')
+       where status = 'active'
+          or (status = 'ended'
+              and ends_at is not null
+              and ends_at > now() - make_interval(hours => $1))
        order by case status when 'active' then 0 else 1 end,
                 starts_at desc
-       limit 1`
+       limit 1`,
+      [EventsRepository.recentlyEndedWindowHours]
     );
-    return row ? rowToEvent(row) : null;
+    return row ? EventsRepository.rowToEvent(row) : null;
   }
 
   async list(): Promise<Event[]> {
     const rows = await query<EventRow>(
       `select * from events order by starts_at desc nulls last`
     );
-    return rows.map(rowToEvent);
+    return rows.map(EventsRepository.rowToEvent);
   }
 
   async create(input: CreateEventInput): Promise<Event> {
@@ -50,7 +60,7 @@ export class EventsRepository {
       [input.name, input.durationMinutes, input.teamSizeCap ?? 5, input.submissionCap ?? 18]
     );
     if (!row) throw new Error("Insert returned no row");
-    return rowToEvent(row);
+    return EventsRepository.rowToEvent(row);
   }
 
   async update(id: string, input: UpdateEventInput): Promise<Event | null> {
@@ -76,6 +86,6 @@ export class EventsRepository {
       `update events set ${sets.join(", ")} where id = $${params.length} returning *`,
       params
     );
-    return row ? rowToEvent(row) : null;
+    return row ? EventsRepository.rowToEvent(row) : null;
   }
 }

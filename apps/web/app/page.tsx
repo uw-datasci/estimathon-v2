@@ -1,6 +1,6 @@
 import { LandingHero } from "@/components/marketing/landing-hero";
 import { proxyApiJson } from "@/lib/api/proxy";
-import { redirectAuthenticatedUserFromLanding } from "@/lib/auth/landing-redirect";
+import { redirectFromLanding } from "@/lib/auth/landing-redirect";
 import { buildLoginHref } from "@/lib/auth/login-href";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import type { Event, MeResponse } from "@estimathon/types";
@@ -14,7 +14,7 @@ export default async function LandingPage() {
 
   if (user) {
     const me = await proxyApiJson<MeResponse>("/me");
-    redirectAuthenticatedUserFromLanding(me.data);
+    redirectFromLanding(me.data);
   }
 
   const loginHref = await buildLoginHref();

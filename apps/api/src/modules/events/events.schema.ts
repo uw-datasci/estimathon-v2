@@ -58,7 +58,7 @@ const addTimeBody = {
 export const eventsSchema = {
   getActive: {
     tags: ["events"],
-    summary: "Latest active or recently ended event",
+    summary: "Latest active event, or one ended within the last 24 hours",
     response: {
       200: {
         type: "object",

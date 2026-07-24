@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { EventStatus, MeResponse } from "@estimathon/types";
 
-export function redirectAuthenticatedUserFromLanding(me: MeResponse | null | undefined): void {
+export function redirectFromLanding(me: MeResponse | null | undefined): void {
   const event = me?.event;
   if (!event) return;
 
