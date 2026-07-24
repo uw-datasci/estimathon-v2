@@ -32,9 +32,12 @@ export class EventsRepository {
   async findCurrent(): Promise<Event | null> {
     const row = await queryOne<EventRow>(
       `select * from events
-       where status = 'active'
+       where (status = 'active'
+              and ends_at is not null
+              and ends_at > now())
           or (status = 'ended'
               and ends_at is not null
+              and ends_at <= now()
               and ends_at > now() - make_interval(hours => $1))
        order by case status when 'active' then 0 else 1 end,
                 starts_at desc

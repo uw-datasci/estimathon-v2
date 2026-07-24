@@ -74,7 +74,19 @@ export class EventsService {
         "Use POST /admin/events/:id/start to move an event out of draft"
       );
     }
-    const updated = await this.repository.update(id, input);
+
+    let patch = input;
+    if (nextStatus === "ended" && existing.status !== "ended") {
+      const nowMs = Date.now();
+      const scheduledEndMs = existing.endsAt ? Date.parse(existing.endsAt) : nowMs;
+      patch = {
+        ...input,
+        endsAt: new Date(Math.min(scheduledEndMs, nowMs)).toISOString(),
+        pausedAt: null,
+      };
+    }
+
+    const updated = await this.repository.update(id, patch);
     if (!updated) throw new HttpError(404, "Event not found");
     if (input.status !== undefined && input.status !== existing.status) {
       this.broadcastStatus(updated);
