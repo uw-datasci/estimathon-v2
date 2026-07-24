@@ -21,7 +21,7 @@ export class EventsRepository {
   }
 
   async findById(id: string): Promise<Event | null> {
-    const row = await queryOne<EventRow>(`select * from events where id = $1`, [id]);
+    const row = await queryOne<EventRow>(`SELECT * FROM events WHERE id = $1`, [id]);
     return row ? EventsRepository.rowToEvent(row) : null;
   }
 
@@ -31,17 +31,17 @@ export class EventsRepository {
    */
   async findCurrent(): Promise<Event | null> {
     const row = await queryOne<EventRow>(
-      `select * from events
-       where (status = 'active'
-              and ends_at is not null
-              and ends_at > now())
-          or (status = 'ended'
-              and ends_at is not null
-              and ends_at <= now()
-              and ends_at > now() - make_interval(hours => $1))
-       order by case status when 'active' then 0 else 1 end,
-                starts_at desc
-       limit 1`,
+      `SELECT * FROM events
+       WHERE (status = 'active'
+              AND ends_at IS NOT NULL
+              AND ends_at > now())
+          OR (status = 'ended'
+              AND ends_at IS NOT NULL
+              AND ends_at <= now()
+              AND ends_at > now() - make_interval(hours => $1))
+       ORDER BY CASE status WHEN 'active' THEN 0 ELSE 1 END,
+                starts_at DESC
+       LIMIT 1`,
       [EventsRepository.recentlyEndedWindowHours]
     );
     return row ? EventsRepository.rowToEvent(row) : null;
@@ -49,17 +49,17 @@ export class EventsRepository {
 
   async list(): Promise<Event[]> {
     const rows = await query<EventRow>(
-      `select * from events order by starts_at desc nulls last`
+      `SELECT * FROM events ORDER BY starts_at DESC NULLS LAST`
     );
     return rows.map(EventsRepository.rowToEvent);
   }
 
   async create(input: CreateEventInput): Promise<Event> {
     const row = await queryOne<EventRow>(
-      `insert into events
+      `INSERT INTO events
          (name, duration_minutes, team_size_cap, submission_cap)
-       values ($1, $2, $3, $4)
-       returning *`,
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
       [input.name, input.durationMinutes, input.teamSizeCap ?? 5, input.submissionCap ?? 18]
     );
     if (!row) throw new Error("Insert returned no row");
@@ -86,7 +86,7 @@ export class EventsRepository {
 
     params.push(id);
     const row = await queryOne<EventRow>(
-      `update events set ${sets.join(", ")} where id = $${params.length} returning *`,
+      `UPDATE events SET ${sets.join(", ")} WHERE id = $${params.length} RETURNING *`,
       params
     );
     return row ? EventsRepository.rowToEvent(row) : null;

@@ -34,7 +34,7 @@ export async function transaction<T>(
 ): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query("begin");
+    await client.query("BEGIN");
     const tx = {
       query: async <U>(text: string, params?: ReadonlyArray<unknown>) => {
         const result = await client.query(text, params as unknown[]);
@@ -42,10 +42,10 @@ export async function transaction<T>(
       },
     };
     const out = await fn(tx);
-    await client.query("commit");
+    await client.query("COMMIT");
     return out;
   } catch (err) {
-    await client.query("rollback").catch(() => undefined);
+    await client.query("ROLLBACK").catch(() => undefined);
     throw err;
   } finally {
     client.release();

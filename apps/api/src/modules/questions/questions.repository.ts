@@ -16,7 +16,7 @@ function rowToQuestion(row: QuestionRow, includeAnswer: boolean): Question {
 
 export class QuestionsRepository {
   async findById(id: string): Promise<Question | null> {
-    const row = await queryOne<QuestionRow>(`select * from questions where id = $1`, [id]);
+    const row = await queryOne<QuestionRow>(`SELECT * FROM questions WHERE id = $1`, [id]);
     return row ? rowToQuestion(row, true) : null;
   }
 
@@ -25,7 +25,7 @@ export class QuestionsRepository {
     options: { includeAnswer: boolean }
   ): Promise<Question[]> {
     const rows = await query<QuestionRow>(
-      `select * from questions where event_id = $1 order by position asc`,
+      `SELECT * FROM questions WHERE event_id = $1 ORDER BY position ASC`,
       [eventId]
     );
     return rows.map((r) => rowToQuestion(r, options.includeAnswer));
@@ -33,7 +33,7 @@ export class QuestionsRepository {
 
   async countForEvent(eventId: string): Promise<number> {
     const row = await queryOne<{ count: string }>(
-      `select count(*) as count from questions where event_id = $1`,
+      `SELECT count(*) AS count FROM questions WHERE event_id = $1`,
       [eventId]
     );
     return Number(row?.count ?? 0);
@@ -41,7 +41,7 @@ export class QuestionsRepository {
 
   async nextPosition(eventId: string): Promise<number> {
     const row = await queryOne<{ max: number | null }>(
-      `select max(position) as max from questions where event_id = $1`,
+      `SELECT max(position) AS max FROM questions WHERE event_id = $1`,
       [eventId]
     );
     return (row?.max ?? 0) + 1;
@@ -54,9 +54,9 @@ export class QuestionsRepository {
     answer: number;
   }): Promise<Question> {
     const row = await queryOne<QuestionRow>(
-      `insert into questions (event_id, position, prompt, answer)
-       values ($1, $2, $3, $4)
-       returning *`,
+      `INSERT INTO questions (event_id, position, prompt, answer)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
       [input.eventId, input.position, input.prompt, input.answer]
     );
     if (!row) throw new Error("Insert returned no row");
@@ -84,13 +84,13 @@ export class QuestionsRepository {
 
     params.push(id);
     const row = await queryOne<QuestionRow>(
-      `update questions set ${sets.join(", ")} where id = $${params.length} returning *`,
+      `UPDATE questions SET ${sets.join(", ")} WHERE id = $${params.length} RETURNING *`,
       params
     );
     return row ? rowToQuestion(row, true) : null;
   }
 
   async delete(id: string): Promise<void> {
-    await pool.query(`delete from questions where id = $1`, [id]);
+    await pool.query(`DELETE FROM questions WHERE id = $1`, [id]);
   }
 }

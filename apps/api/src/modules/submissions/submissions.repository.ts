@@ -23,10 +23,10 @@ export class SubmissionsRepository {
     maxValue: number;
   }): Promise<Submission> {
     const row = await queryOne<SubmissionRow>(
-      `insert into submissions
+      `INSERT INTO submissions
          (team_id, question_id, user_id, min_value, max_value)
-       values ($1, $2, $3, $4, $5)
-       returning *`,
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
       [input.teamId, input.questionId, input.userId, input.minValue, input.maxValue]
     );
     if (!row) throw new Error("Insert returned no row");
@@ -35,7 +35,7 @@ export class SubmissionsRepository {
 
   async listForTeam(teamId: string): Promise<Submission[]> {
     const rows = await query<SubmissionRow>(
-      `select * from submissions where team_id = $1 order by submitted_at desc`,
+      `SELECT * FROM submissions WHERE team_id = $1 ORDER BY submitted_at DESC`,
       [teamId]
     );
     return rows.map(rowToSubmission);
@@ -43,7 +43,7 @@ export class SubmissionsRepository {
 
   async countForTeam(teamId: string): Promise<number> {
     const row = await queryOne<{ count: string }>(
-      `select count(*)::text as count from submissions where team_id = $1`,
+      `SELECT count(*)::text AS count FROM submissions WHERE team_id = $1`,
       [teamId]
     );
     return row ? Number(row.count) : 0;
@@ -51,10 +51,10 @@ export class SubmissionsRepository {
 
   async listForEvent(eventId: string): Promise<Submission[]> {
     const rows = await query<SubmissionRow>(
-      `select s.* from submissions s
-       join teams t on t.id = s.team_id
-       where t.event_id = $1
-       order by s.submitted_at desc`,
+      `SELECT s.* FROM submissions s
+       JOIN teams t ON t.id = s.team_id
+       WHERE t.event_id = $1
+       ORDER BY s.submitted_at DESC`,
       [eventId]
     );
     return rows.map(rowToSubmission);
