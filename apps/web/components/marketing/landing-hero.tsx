@@ -16,7 +16,7 @@ export function LandingHero({ event, isLoggedIn, loginHref }: Readonly<LandingHe
 
   return (
     <div className="mx-auto flex min-h-svh max-w-lg flex-col justify-center px-6 py-16">
-      <div className="rounded-2xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl backdrop-saturate-150">
+      <div className="rounded-2xl border border-white/15 bg-portage-950/45 p-8 shadow-2xl backdrop-blur-xl backdrop-saturate-150">
         <p className="text-xs tracking-[0.2em] text-portage-50 uppercase">UW Data Science Club</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
           Estimathon
