@@ -35,11 +35,15 @@ export function WaitingScreen({ event, team, accessToken }: Readonly<Props>) {
 
   return (
     <main className="mx-auto flex min-h-svh max-w-2xl flex-col justify-center px-6 text-center">
-      <p className="text-xs tracking-widest text-muted-foreground uppercase">{event.name}</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Event starts in</h1>
+      <p className="text-xs tracking-widest text-portage-100 uppercase">{event.name}</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">Event starts in</h1>
       {event.startsAt && (
         <div className="mt-8 flex justify-center">
-          <Countdown target={event.startsAt} onComplete={() => router.replace("/play")} />
+          <Countdown
+            target={event.startsAt}
+            onComplete={() => router.replace("/play")}
+            light
+          />
         </div>
       )}
       <Card className="mt-10 text-left">

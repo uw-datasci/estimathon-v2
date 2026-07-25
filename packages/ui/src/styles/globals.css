@@ -48,6 +48,17 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
   --font-sans: var(--font-sans);
+  --color-portage-50: #f2f6fc;
+  --color-portage-100: #e1eaf8;
+  --color-portage-200: #cadaf3;
+  --color-portage-300: #a6c3ea;
+  --color-portage-400: #7ca3de;
+  --color-portage-500: #5d84d4;
+  --color-portage-600: #496ac7;
+  --color-portage-700: #405aba;
+  --color-portage-800: #384995;
+  --color-portage-900: #314077;
+  --color-portage-950: #222949;
 }
 
 :root {

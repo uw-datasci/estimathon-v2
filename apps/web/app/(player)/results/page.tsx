@@ -25,9 +25,9 @@ export default async function ResultsPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       <div className="mb-8 text-center">
-        <p className="text-xs tracking-widest text-muted-foreground uppercase">{event.name}</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Final results</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Thanks for playing Estimathon.</p>
+        <p className="text-xs tracking-widest text-portage-100 uppercase">{event.name}</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">Final results</h1>
+        <p className="mt-2 text-sm text-portage-100">Thanks for playing Estimathon.</p>
       </div>
       <LeaderboardLive
         event={event}

@@ -24,11 +24,9 @@ export default async function LeaderboardPage() {
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
         <div>
-          <p className="text-[10px] tracking-widest text-muted-foreground uppercase">
-            {event.name}
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">Leaderboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-[10px] tracking-widest text-portage-100 uppercase">{event.name}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-white">Leaderboard</h1>
+          <p className="mt-1 text-sm text-portage-100">
             Lower score is better. Updates live during the event.
           </p>
         </div>

@@ -16,11 +16,13 @@ export function LandingHero({ event, isLoggedIn, loginHref }: Readonly<LandingHe
 
   return (
     <div className="mx-auto flex min-h-svh max-w-2xl flex-col justify-center px-6 py-16">
-      <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
+      <p className="text-xs tracking-[0.2em] text-portage-100 uppercase">
         UW Data Science Club
       </p>
-      <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Estimathon</h1>
-      <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+      <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+        Estimathon
+      </h1>
+      <p className="mt-4 text-base leading-relaxed text-portage-100">
         Teams submit numeric ranges for estimation questions. Golf scoring - lower is better.
         Correct intervals tighten your multiplier; wrong ones blow it up.
       </p>
@@ -34,7 +36,7 @@ export function LandingHero({ event, isLoggedIn, loginHref }: Readonly<LandingHe
           </div>
         </div>
       ) : (
-        <p className="mt-10 rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <p className="mt-10 rounded-xl border border-white/30 border-dashed p-6 text-center text-sm text-portage-100">
           No event running right now. Check back next season.
         </p>
       )}

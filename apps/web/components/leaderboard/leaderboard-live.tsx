@@ -42,7 +42,9 @@ export function LeaderboardLive({
   return (
     <div className="grid gap-8">
       <Podium entries={leaderboard} highlightTeamId={highlightTeamId} />
-      <LeaderboardTable entries={leaderboard} highlightTeamId={highlightTeamId} />
+      <div className="rounded-xl border bg-card p-4">
+        <LeaderboardTable entries={leaderboard} highlightTeamId={highlightTeamId} />
+      </div>
     </div>
   );
 }

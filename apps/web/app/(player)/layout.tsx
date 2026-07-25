@@ -1,3 +1,4 @@
+import { Backdrop } from "@/components/marketing/backdrop";
 import { requireSession } from "@/lib/auth/session";
 
 /**
@@ -10,5 +11,10 @@ export default async function PlayerLayout({
   children: React.ReactNode;
 }>) {
   await requireSession();
-  return <>{children}</>;
+  return (
+    <>
+      <Backdrop />
+      {children}
+    </>
+  );
 }

@@ -43,24 +43,26 @@ export default async function PlayPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
-      <PlayClient
-        event={event}
-        team={team}
-        questions={questionsResult.data?.questions ?? []}
-        initialSubmissions={submissionsResult.data?.submissions ?? []}
-        initialScore={
-          scoreResult.data ?? {
-            teamId: team.id,
-            score: 0,
-            goodIntervals: 0,
-            submissionCount: 0,
-            evaluations: [],
+      <div className="rounded-xl border bg-card p-4 sm:p-6">
+        <PlayClient
+          event={event}
+          team={team}
+          questions={questionsResult.data?.questions ?? []}
+          initialSubmissions={submissionsResult.data?.submissions ?? []}
+          initialScore={
+            scoreResult.data ?? {
+              teamId: team.id,
+              score: 0,
+              goodIntervals: 0,
+              submissionCount: 0,
+              evaluations: [],
+            }
           }
-        }
-        initialLeaderboard={leaderboardResult.data?.leaderboard ?? []}
-        accessToken={accessToken}
-        currentUser={currentUser}
-      />
+          initialLeaderboard={leaderboardResult.data?.leaderboard ?? []}
+          accessToken={accessToken}
+          currentUser={currentUser}
+        />
+      </div>
     </main>
   );
 }

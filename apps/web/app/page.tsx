@@ -1,3 +1,4 @@
+import { Backdrop } from "@/components/marketing/backdrop";
 import { LandingHero } from "@/components/marketing/landing-hero";
 import { proxyApiJson } from "@/lib/api/proxy";
 import { redirectFromLanding } from "@/lib/auth/landing-redirect";
@@ -19,5 +20,10 @@ export default async function LandingPage() {
 
   const loginHref = await buildLoginHref();
 
-  return <LandingHero event={event} isLoggedIn={!!user} loginHref={loginHref} />;
+  return (
+    <>
+      <Backdrop />
+      <LandingHero event={event} isLoggedIn={!!user} loginHref={loginHref} />
+    </>
+  );
 }
