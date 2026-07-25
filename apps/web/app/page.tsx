@@ -2,7 +2,6 @@ import { Backdrop } from "@/components/marketing/backdrop";
 import { LandingHero } from "@/components/marketing/landing-hero";
 import { proxyApiJson } from "@/lib/api/proxy";
 import { redirectFromLanding } from "@/lib/auth/landing-redirect";
-import { buildLoginHref } from "@/lib/auth/login-href";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import type { Event, MeResponse } from "@estimathon/types";
 
@@ -18,12 +17,10 @@ export default async function LandingPage() {
     redirectFromLanding(me.data);
   }
 
-  const loginHref = await buildLoginHref();
-
   return (
     <>
       <Backdrop />
-      <LandingHero event={event} isLoggedIn={!!user} loginHref={loginHref} />
+      <LandingHero event={event} />
     </>
   );
 }

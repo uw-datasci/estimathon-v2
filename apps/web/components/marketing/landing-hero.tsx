@@ -1,17 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@estimathon/ui/components/button";
 import { Countdown } from "@/components/shared/countdown";
 import type { Event } from "@estimathon/types";
 
 interface LandingHeroProps {
   event: Event | null;
-  isLoggedIn: boolean;
-  loginHref: string;
 }
 
-export function LandingHero({ event, isLoggedIn, loginHref }: Readonly<LandingHeroProps>) {
+export function LandingHero({ event }: Readonly<LandingHeroProps>) {
   const isActive = event?.status === "active" && Boolean(event.endsAt);
 
   return (
@@ -40,26 +36,6 @@ export function LandingHero({ event, isLoggedIn, loginHref }: Readonly<LandingHe
           </p>
         )}
 
-        <div className="mt-10 flex flex-wrap gap-3">
-          {isLoggedIn ? (
-            <>
-              <Button asChild className="bg-white text-portage-700 shadow-lg hover:bg-portage-50">
-                <Link href="/play">Enter event</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="border-white/40 bg-white/15 text-white backdrop-blur-sm hover:bg-white/25 hover:text-white"
-              >
-                <Link href="/leaderboard">Leaderboard</Link>
-              </Button>
-            </>
-          ) : (
-            <Button asChild className="bg-white text-portage-700 shadow-lg hover:bg-portage-50">
-              <a href={loginHref}>Log in with club account</a>
-            </Button>
-          )}
-        </div>
       </div>
     </div>
   );
