@@ -8,6 +8,13 @@ const dateFormatter = new Intl.DateTimeFormat("en-CA", {
   minute: "2-digit",
 });
 
+export function hasEventStarted(startsAt: string | null | undefined): boolean {
+  if (!startsAt) return false;
+  const startMs = Date.parse(startsAt);
+  if (!Number.isFinite(startMs)) return false;
+  return startMs <= Date.now();
+}
+
 export function formatRange(startsAt: string | null, endsAt: string | null): string {
   if (!startsAt || !endsAt) return "Not started";
   const start = new Date(startsAt);

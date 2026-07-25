@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { proxyApiJson } from "@/lib/api/proxy";
 import { getAccessToken, getSessionIdentity } from "@/lib/auth/session";
+import { hasEventStarted } from "@/lib/event/helpers";
 import { PlayClient } from "@/components/play/play-client";
 import type {
   LeaderboardEntry,
@@ -20,7 +21,7 @@ export default async function PlayPage() {
   if (!event) redirect("/");
   if (!team) redirect("/onboarding");
   if (event.status !== "active") redirect("/results");
-  if (!event.startsAt || Date.parse(event.startsAt) > Date.now()) redirect("/waiting");
+  if (!hasEventStarted(event.startsAt)) redirect("/waiting");
 
   const [questionsResult, submissionsResult, scoreResult, leaderboardResult] =
     await Promise.all([

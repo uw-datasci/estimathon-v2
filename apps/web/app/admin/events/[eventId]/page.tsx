@@ -7,16 +7,16 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { EventForm } from "@/components/admin/event-form";
 import { EventLifecycleActions } from "@/components/admin/event-lifecycle-actions";
 import { proxyApiJson } from "@/lib/api/proxy";
-import { formatRange, statusVariant } from "@/lib/format/event";
+import { formatRange, statusVariant } from "@/lib/event/helpers";
 import type { Event, Question } from "@estimathon/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function EventDetailPage({
-  params,
-}: {
-  params: Promise<{ eventId: string }>;
-}) {
+interface EventDetailPageProps {
+  readonly params: Promise<{ eventId: string }>;
+}
+
+export default async function EventDetailPage({ params }: EventDetailPageProps) {
   const { eventId } = await params;
   const [eventResult, questionsResult] = await Promise.all([
     proxyApiJson<Event>(`/events/${encodeURIComponent(eventId)}`),

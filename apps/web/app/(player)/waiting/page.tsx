@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { proxyApiJson } from "@/lib/api/proxy";
 import { getAccessToken } from "@/lib/auth/session";
+import { hasEventStarted } from "@/lib/event/helpers";
 import { WaitingScreen } from "@/components/player/waiting-screen";
 import type { MeResponse } from "@estimathon/types";
 
@@ -14,7 +15,7 @@ export default async function WaitingPage() {
   if (!event) redirect("/");
   if (!team) redirect("/onboarding");
   if (event.status !== "active") redirect("/");
-  if (event.startsAt && Date.parse(event.startsAt) <= Date.now()) redirect("/play");
+  if (hasEventStarted(event.startsAt)) redirect("/play");
 
   const accessToken = await getAccessToken();
 

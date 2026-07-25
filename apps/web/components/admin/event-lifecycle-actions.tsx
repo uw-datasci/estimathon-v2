@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@estimathon/ui/components/dialog";
 import type { Event } from "@estimathon/types";
-import { toLocalInput, fromLocalInput } from "@/lib/format/event";
+import { toLocalInput, fromLocalInput } from "@/lib/event/helpers";
 
 interface Props {
   event: Event;

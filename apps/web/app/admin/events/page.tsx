@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { proxyApiJson } from "@/lib/api/proxy";
 import type { Event } from "@estimathon/types";
-import { formatRange, statusVariant } from "@/lib/format/event";
+import { formatRange, statusVariant } from "@/lib/event/helpers";
 
 export const dynamic = "force-dynamic";
 
