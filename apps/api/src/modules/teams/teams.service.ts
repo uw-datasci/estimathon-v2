@@ -3,6 +3,7 @@ import { HttpError } from "../events/events.service";
 import { EventsRepository } from "../events/events.repository";
 import { QuestionsRepository } from "../questions/questions.repository";
 import { computeTeamScore } from "../../utils/scoring";
+import type { EventHub } from "../realtime/event-hub";
 import { SubmissionsRepository } from "../submissions/submissions.repository";
 import { TeamsRepository } from "./teams.repository";
 import type { AdminTeamDetail, CreateTeamInput } from "./teams.types";
@@ -29,8 +30,17 @@ export class TeamsService {
     private readonly repository: TeamsRepository,
     private readonly events: EventsRepository,
     private readonly submissions?: SubmissionsRepository,
-    private readonly questions?: QuestionsRepository
+    private readonly questions?: QuestionsRepository,
+    private readonly hub?: EventHub
   ) {}
+
+  /** Recompute and broadcast live join/progress counters after a roster change. */
+  private async publishStats(eventId: string) {
+    if (!this.hub) return;
+    const questionCount = (await this.questions?.countForEvent(eventId)) ?? 0;
+    const stats = await this.events.stats(eventId, questionCount);
+    this.hub.publish(eventId, { type: "event_stats", eventId, data: stats });
+  }
 
   async create(eventId: string, userId: string, input: CreateTeamInput): Promise<Team> {
     const event = await assertTeamOperationsAllowed(this.events, eventId);
@@ -52,12 +62,14 @@ export class TeamsService {
     }
     if (!code) throw new HttpError(500, "Could not generate a unique team code");
 
-    return this.repository.createWithCreator({
+    const team = await this.repository.createWithCreator({
       eventId: event.id,
       code,
       name: input.name?.trim() || null,
       creatorUserId: userId,
     });
+    await this.publishStats(event.id);
+    return team;
   }
 
   async joinByCode(eventId: string, code: string, userId: string): Promise<Team> {
@@ -82,6 +94,7 @@ export class TeamsService {
       eventId: event.id,
       userId,
     });
+    await this.publishStats(event.id);
     return team;
   }
 
@@ -94,6 +107,7 @@ export class TeamsService {
 
     await this.repository.removeMember(teamId, userId);
     await this.repository.deleteIfEmpty(teamId);
+    await this.publishStats(team.eventId);
   }
 
   async getDetail(
@@ -138,7 +152,7 @@ export class TeamsService {
             submittedAt: s.submittedAt,
           })),
           questionInputs,
-          event.submissionCap
+          questionInputs.length
         );
         return {
           team,

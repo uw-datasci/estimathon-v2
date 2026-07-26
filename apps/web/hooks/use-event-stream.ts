@@ -3,9 +3,15 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { clientConfig } from "@/config/client";
-import type { LeaderboardEntry, QuestionEvaluation, ServerMessage } from "@estimathon/types";
+import type {
+  EventStats,
+  LeaderboardEntry,
+  QuestionEvaluation,
+  ServerMessage,
+} from "@estimathon/types";
 
 export const leaderboardQueryKey = (eventId: string) => ["leaderboard", eventId] as const;
+export const eventStatsQueryKey = (eventId: string) => ["eventStats", eventId] as const;
 
 interface UseEventStreamOptions {
   eventId: string | null;
@@ -21,6 +27,7 @@ interface UseEventStreamOptions {
   onEventStatus?: (status: ServerMessage & { type: "event_status" }) => void;
   onSubmission?: (msg: ServerMessage & { type: "submission" }) => void;
   onEditing?: (msg: ServerMessage & { type: "editing" }) => void;
+  onEventStats?: (msg: ServerMessage & { type: "event_stats" }) => void;
 }
 
 /**
@@ -35,6 +42,7 @@ export function useEventStream({
   onEventStatus,
   onSubmission,
   onEditing,
+  onEventStats,
 }: UseEventStreamOptions) {
   const queryClient = useQueryClient();
 
@@ -57,6 +65,10 @@ export function useEventStream({
       switch (msg.type) {
         case "leaderboard":
           queryClient.setQueryData(leaderboardQueryKey(eventId), msg.data);
+          break;
+        case "event_stats":
+          queryClient.setQueryData(eventStatsQueryKey(eventId), msg.data);
+          onEventStats?.(msg);
           break;
         case "team_score":
           if (teamId && msg.teamId === teamId) {
@@ -95,6 +107,7 @@ export function useEventStream({
     onEventStatus,
     onSubmission,
     onEditing,
+    onEventStats,
   ]);
 }
 
@@ -132,5 +145,12 @@ export function useLeaderboardQuery(eventId: string, initial: LeaderboardEntry[]
   const queryClient = useQueryClient();
   return {
     data: queryClient.getQueryData<LeaderboardEntry[]>(leaderboardQueryKey(eventId)) ?? initial,
+  };
+}
+
+export function useEventStatsQuery(eventId: string, initial: EventStats) {
+  const queryClient = useQueryClient();
+  return {
+    data: queryClient.getQueryData<EventStats>(eventStatsQueryKey(eventId)) ?? initial,
   };
 }

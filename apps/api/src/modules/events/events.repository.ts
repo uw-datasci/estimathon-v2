@@ -1,6 +1,6 @@
 import { query, queryOne } from "@estimathon/db";
-import type { Event } from "@estimathon/types";
-import type { CreateEventInput, EventRow, UpdateEventInput } from "./events.types";
+import type { Event, EventStats } from "@estimathon/types";
+import type { CreateEventInput, EventRow, EventStatsRow, UpdateEventInput } from "./events.types";
 
 export class EventsRepository {
   private static readonly recentlyEndedWindowHours = 24;
@@ -14,7 +14,6 @@ export class EventsRepository {
       endsAt: row.ends_at,
       pausedAt: row.paused_at,
       teamSizeCap: row.team_size_cap,
-      submissionCap: row.submission_cap,
       status: row.status,
       createdAt: row.created_at,
     };
@@ -57,10 +56,10 @@ export class EventsRepository {
   async create(input: CreateEventInput): Promise<Event> {
     const row = await queryOne<EventRow>(
       `INSERT INTO events
-         (name, duration_minutes, team_size_cap, submission_cap)
-       VALUES ($1, $2, $3, $4)
+         (name, duration_minutes, team_size_cap)
+       VALUES ($1, $2, $3)
        RETURNING *`,
-      [input.name, input.durationMinutes, input.teamSizeCap ?? 5, input.submissionCap ?? 18]
+      [input.name, input.durationMinutes, input.teamSizeCap ?? 5]
     );
     if (!row) throw new Error("Insert returned no row");
     return EventsRepository.rowToEvent(row);
@@ -77,7 +76,6 @@ export class EventsRepository {
     if (input.startsAt !== undefined) push("starts_at", input.startsAt);
     if (input.durationMinutes !== undefined) push("duration_minutes", input.durationMinutes);
     if (input.teamSizeCap !== undefined) push("team_size_cap", input.teamSizeCap);
-    if (input.submissionCap !== undefined) push("submission_cap", input.submissionCap);
     if (input.status !== undefined) push("status", input.status);
     if (input.endsAt !== undefined) push("ends_at", input.endsAt);
     if (input.pausedAt !== undefined) push("paused_at", input.pausedAt);
@@ -90,5 +88,36 @@ export class EventsRepository {
       params
     );
     return row ? EventsRepository.rowToEvent(row) : null;
+  }
+
+  /**
+   * Live counters for the admin overview. `questionCount` is passed in
+   * (the questions repository already owns that count) so "finished" can be
+   * computed as "answered every question at least once" in the same query.
+   */
+  async stats(eventId: string, questionCount: number): Promise<EventStats> {
+    const row = await queryOne<EventStatsRow>(
+      `WITH per_team AS (
+         SELECT t.id, count(DISTINCT s.question_id) AS answered
+         FROM teams t
+         LEFT JOIN submissions s ON s.team_id = t.id
+         WHERE t.event_id = $1
+         GROUP BY t.id
+       )
+       SELECT
+         (SELECT count(*) FROM team_members WHERE event_id = $1)::text AS player_count,
+         count(*)::text AS team_count,
+         coalesce(avg(answered), 0)::text AS avg_answered,
+         count(*) FILTER (WHERE answered >= $2)::text AS finished_count
+       FROM per_team`,
+      [eventId, questionCount]
+    );
+    return {
+      teamCount: row ? Number(row.team_count) : 0,
+      playerCount: row ? Number(row.player_count) : 0,
+      questionCount,
+      avgAnswered: row ? Number(row.avg_answered) : 0,
+      finishedCount: row ? Number(row.finished_count) : 0,
+    };
   }
 }

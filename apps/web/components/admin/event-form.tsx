@@ -22,7 +22,6 @@ const schema = z.object({
   name: z.string().min(1, "Required"),
   durationMinutes: z.coerce.number().int().positive(),
   teamSizeCap: z.coerce.number().int().positive(),
-  submissionCap: z.coerce.number().int().positive(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -43,7 +42,6 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
       name: initial?.name ?? "",
       durationMinutes: initial?.durationMinutes ?? 60,
       teamSizeCap: initial?.teamSizeCap ?? 5,
-      submissionCap: initial?.submissionCap ?? 18,
     },
   });
 
@@ -54,7 +52,6 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
         name: values.name,
         durationMinutes: values.durationMinutes,
         teamSizeCap: values.teamSizeCap,
-        submissionCap: values.submissionCap,
       };
       const url = mode === "create" ? "/api/admin/events" : `/api/admin/events/${initial!.id}`;
       const method = mode === "create" ? "POST" : "PATCH";
@@ -96,8 +93,8 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
         <CardHeader>
           <CardTitle className="text-base">Basics</CardTitle>
           <CardDescription>
-            Name and duration. The event is created as a draft - use the Start button on the
-            event page once its questions are ready.
+            Name, duration, and team size. The event is created as a draft - add questions
+            and use the Start button on the event page when it&apos;s ready to go live.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -107,37 +104,26 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
             {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
           </div>
 
-          <div className="grid gap-2 sm:max-w-xs">
-            <Label htmlFor="durationMinutes">Duration (minutes)</Label>
-            <Input
-              id="durationMinutes"
-              type="number"
-              min={1}
-              {...register("durationMinutes")}
-            />
-            {errors.durationMinutes && (
-              <p className="text-xs text-destructive">{errors.durationMinutes.message}</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Rules</CardTitle>
-          <CardDescription>
-            The submission cap also sets the number of questions - add exactly that many
-            questions before starting the event.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <Label htmlFor="teamSizeCap">Team size cap</Label>
-            <Input id="teamSizeCap" type="number" min={1} {...register("teamSizeCap")} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="submissionCap">Submission cap</Label>
-            <Input id="submissionCap" type="number" min={1} {...register("submissionCap")} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="durationMinutes">Duration (minutes)</Label>
+              <Input
+                id="durationMinutes"
+                type="number"
+                min={1}
+                {...register("durationMinutes")}
+              />
+              {errors.durationMinutes && (
+                <p className="text-xs text-destructive">{errors.durationMinutes.message}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="teamSizeCap">Team size cap</Label>
+              <Input id="teamSizeCap" type="number" min={1} {...register("teamSizeCap")} />
+              {errors.teamSizeCap && (
+                <p className="text-xs text-destructive">{errors.teamSizeCap.message}</p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

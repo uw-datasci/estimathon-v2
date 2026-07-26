@@ -1,53 +1,43 @@
 import { Card, CardContent } from "@estimathon/ui/components/card";
+import { StatTile } from "@/components/shared/stat-tile";
 import { ScoreCounter } from "./score-counter";
 
 interface ScorePanelProps {
   score: number;
   goodIntervals: number;
-  submissionCount: number;
-  submissionCap: number;
+  answeredCount: number;
+  questionCount: number;
 }
 
 export function ScorePanel({
   score,
   goodIntervals,
-  submissionCount,
-  submissionCap,
+  answeredCount,
+  questionCount,
 }: ScorePanelProps) {
-  const remaining = Math.max(0, submissionCap - submissionCount);
+  const remaining = Math.max(0, questionCount - answeredCount);
   return (
     <Card>
       <CardContent>
         <div className="grid grid-cols-3 gap-4">
-          <Stat
+          <StatTile
             label="Score"
             value={<ScoreCounter value={score} className="font-semibold" />}
           />
-          <Stat
+          <StatTile
             label="Correct intervals"
             value={
               <span className="font-semibold tabular-nums">
-                {goodIntervals}/{submissionCap}
+                {goodIntervals}/{questionCount}
               </span>
             }
           />
-          <Stat
-            label="Guesses left"
+          <StatTile
+            label="Questions left"
             value={<span className="font-semibold tabular-nums">{remaining}</span>}
           />
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex flex-col">
-      <span className="text-[10px] tracking-widest text-muted-foreground uppercase">
-        {label}
-      </span>
-      <span className="text-2xl">{value}</span>
-    </div>
   );
 }

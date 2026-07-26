@@ -36,8 +36,8 @@ export default async function EventQuestionsPage({
       }
     >
       <p className="mb-4 text-sm text-muted-foreground">
-        {questions.length}/{event.submissionCap} questions added - the submission cap sets how
-        many are required before the event can start.
+        {questions.length} question{questions.length === 1 ? "" : "s"} added - each team gets
+        one guess per question. Add at least one before starting.
       </p>
       <QuestionsEditor eventId={event.id} questions={questions} />
     </AdminShell>

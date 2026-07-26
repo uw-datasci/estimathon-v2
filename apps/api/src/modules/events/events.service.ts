@@ -1,4 +1,4 @@
-import type { Event } from "@estimathon/types";
+import type { Event, EventStats } from "@estimathon/types";
 import type { EventHub } from "../realtime/event-hub";
 import { QuestionsRepository } from "../questions/questions.repository";
 import { EventsRepository } from "./events.repository";
@@ -94,9 +94,9 @@ export class EventsService {
     return updated;
   }
 
-  /** Start a draft event at a scheduled (future) time. Requires the number
-   * of questions added so far to match the submission cap - the event must
-   * have all its questions ready before it goes live. */
+  /** Start a draft event at a scheduled (future) time. Requires at least one
+   * question - the attempt budget is simply the number of questions, so an
+   * event with none would let teams do nothing. */
   async start(id: string, startsAt: string): Promise<Event> {
     const event = await this.repository.findById(id);
     if (!event) throw new HttpError(404, "Event not found");
@@ -104,11 +104,8 @@ export class EventsService {
     validateStartsAt(startsAt);
 
     const questionCount = (await this.questions?.countForEvent(id)) ?? 0;
-    if (questionCount !== event.submissionCap) {
-      throw new HttpError(
-        400,
-        `Add ${event.submissionCap} question(s) to match the submission cap before starting (currently ${questionCount})`
-      );
+    if (questionCount === 0) {
+      throw new HttpError(400, "Add at least one question before starting the event");
     }
 
     const endsAt = new Date(
@@ -192,6 +189,14 @@ export class EventsService {
       endsAt: event.endsAt,
       pausedAt: event.pausedAt,
     });
+  }
+
+  /** Live join/progress counters for the admin overview. */
+  async getStats(id: string): Promise<EventStats> {
+    const event = await this.repository.findById(id);
+    if (!event) throw new HttpError(404, "Event not found");
+    const questionCount = (await this.questions?.countForEvent(id)) ?? 0;
+    return this.repository.stats(id, questionCount);
   }
 }
 

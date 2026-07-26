@@ -10,12 +10,22 @@ const eventProps = {
   endsAt: { type: ["string", "null"] },
   pausedAt: { type: ["string", "null"] },
   teamSizeCap: { type: "integer" },
-  submissionCap: { type: "integer" },
   status: { type: "string", enum: eventStatusEnum },
   createdAt: { type: "string" },
 } as const;
 
 const eventObject = { type: "object", properties: eventProps } as const;
+
+const eventStatsObject = {
+  type: "object",
+  properties: {
+    teamCount: { type: "integer" },
+    playerCount: { type: "integer" },
+    questionCount: { type: "integer" },
+    avgAnswered: { type: "number" },
+    finishedCount: { type: "integer" },
+  },
+} as const;
 
 const createBody = {
   type: "object",
@@ -24,7 +34,6 @@ const createBody = {
     name: { type: "string" },
     durationMinutes: { type: "integer", minimum: 1 },
     teamSizeCap: { type: "integer", minimum: 1 },
-    submissionCap: { type: "integer", minimum: 1 },
   },
 } as const;
 
@@ -34,7 +43,6 @@ const updateBody = {
     name: { type: "string" },
     durationMinutes: { type: "integer", minimum: 1 },
     teamSizeCap: { type: "integer", minimum: 1 },
-    submissionCap: { type: "integer", minimum: 1 },
     status: { type: "string", enum: eventStatusEnum },
   },
 } as const;
@@ -120,5 +128,11 @@ export const eventsSchema = {
     params: { type: "object", properties: { id: { type: "string" } } },
     body: addTimeBody,
     response: { 200: eventObject },
+  },
+  stats: {
+    tags: ["events", "admin"],
+    summary: "Live join/progress counters for the admin overview",
+    params: { type: "object", properties: { id: { type: "string" } } },
+    response: { 200: eventStatsObject },
   },
 } satisfies Record<string, FastifySchema>;

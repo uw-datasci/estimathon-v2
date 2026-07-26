@@ -25,6 +25,7 @@ export class EventsController {
     this.pause = this.pause.bind(this);
     this.resume = this.resume.bind(this);
     this.addTime = this.addTime.bind(this);
+    this.getStats = this.getStats.bind(this);
   }
 
   async getActive(_request: FastifyRequest, reply: FastifyReply) {
@@ -77,5 +78,10 @@ export class EventsController {
     const { id } = request.params as { id: string };
     const { seconds } = request.body as { seconds: number };
     return handle(reply, () => this.service.addTime(id, seconds));
+  }
+
+  async getStats(request: FastifyRequest, reply: FastifyReply) {
+    const { id } = request.params as { id: string };
+    return handle(reply, () => this.service.getStats(id));
   }
 }

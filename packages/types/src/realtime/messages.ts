@@ -1,4 +1,4 @@
-import type { EventStatus } from "../event/events.js";
+import type { EventStats, EventStatus } from "../event/events.js";
 import type { LeaderboardEntry, QuestionEvaluation } from "../event/scoring.js";
 import type { Submission } from "../event/submissions.js";
 
@@ -28,6 +28,7 @@ export type ServerMessage =
       pausedAt: string | null;
     }
   | { type: "announcement"; eventId: string; message: string }
+  | { type: "event_stats"; eventId: string; data: EventStats }
   | {
       type: "submission";
       eventId: string;

@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@estimathon/ui/compone
 import { AdminShell } from "@/components/admin/admin-shell";
 import { EventForm } from "@/components/admin/event-form";
 import { EventLifecycleActions } from "@/components/admin/event-lifecycle-actions";
+import { EventHighlights } from "@/components/admin/event-highlights";
 import { proxyApiJson } from "@/lib/api/proxy";
+import { getAccessToken } from "@/lib/auth/session";
 import { formatRange, statusVariant } from "@/lib/event/helpers";
-import type { Event, Question } from "@estimathon/types";
+import type { Event, EventStats, LeaderboardEntry, Question } from "@estimathon/types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,15 +20,29 @@ interface EventDetailPageProps {
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
   const { eventId } = await params;
-  const [eventResult, questionsResult] = await Promise.all([
-    proxyApiJson<Event>(`/events/${encodeURIComponent(eventId)}`),
-    proxyApiJson<{ questions: Question[] }>(
-      `/admin/events/${encodeURIComponent(eventId)}/questions`
-    ),
-  ]);
+  const [eventResult, questionsResult, statsResult, leaderboardResult, accessToken] =
+    await Promise.all([
+      proxyApiJson<Event>(`/events/${encodeURIComponent(eventId)}`),
+      proxyApiJson<{ questions: Question[] }>(
+        `/admin/events/${encodeURIComponent(eventId)}/questions`
+      ),
+      proxyApiJson<EventStats>(`/admin/events/${encodeURIComponent(eventId)}/stats`),
+      proxyApiJson<{ leaderboard: LeaderboardEntry[] }>(
+        `/events/${encodeURIComponent(eventId)}/leaderboard`
+      ),
+      getAccessToken(),
+    ]);
   if (eventResult.status === 404 || !eventResult.data) notFound();
   const event = eventResult.data;
   const questionsCount = questionsResult.data?.questions.length ?? 0;
+  const stats = statsResult.data ?? {
+    teamCount: 0,
+    playerCount: 0,
+    questionCount: questionsCount,
+    avgAnswered: 0,
+    finishedCount: 0,
+  };
+  const leaderboard = leaderboardResult.data?.leaderboard ?? [];
 
   return (
     <AdminShell
@@ -44,28 +60,30 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             <CardTitle className="text-base">Overview</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            <dl className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3">
               <div>
                 <dt className="text-xs tracking-wide uppercase">Window</dt>
                 <dd className="text-foreground">{formatRange(event.startsAt, event.endsAt)}</dd>
               </div>
               <div>
                 <dt className="text-xs tracking-wide uppercase">Questions</dt>
-                <dd className="text-foreground">
-                  {questionsCount}/{event.submissionCap}
-                </dd>
+                <dd className="text-foreground">{questionsCount}</dd>
               </div>
               <div>
                 <dt className="text-xs tracking-wide uppercase">Team cap</dt>
                 <dd className="text-foreground">{event.teamSizeCap}</dd>
               </div>
-              <div>
-                <dt className="text-xs tracking-wide uppercase">Submissions cap</dt>
-                <dd className="text-foreground">{event.submissionCap}</dd>
-              </div>
             </dl>
           </CardContent>
         </Card>
+
+        <EventHighlights
+          eventId={event.id}
+          eventStatus={event.status}
+          accessToken={accessToken}
+          initialStats={stats}
+          initialLeaderboard={leaderboard}
+        />
 
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">

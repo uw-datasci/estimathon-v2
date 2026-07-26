@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@estimathon/ui/components/button";
 import { Input } from "@estimathon/ui/components/input";
 import { Label } from "@estimathon/ui/components/label";
+import { Checkbox } from "@estimathon/ui/components/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@estimathon/ui/components/alert";
 import {
   Dialog,
@@ -36,8 +38,9 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
   const [startOpen, setStartOpen] = useState(false);
   const [startsAt, setStartsAt] = useState(defaultStartValue);
   const [startError, setStartError] = useState<string | null>(null);
+  const [reviewed, setReviewed] = useState(false);
 
-  const questionsReady = questionsCount === event.submissionCap;
+  const questionsReady = questionsCount > 0;
 
   async function send(
     method: "PATCH" | "POST",
@@ -70,12 +73,13 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
   function openStartDialog() {
     setStartsAt(defaultStartValue());
     setStartError(null);
+    setReviewed(false);
     setStartOpen(true);
   }
 
   async function submitStart(e: React.FormEvent) {
     e.preventDefault();
-    if (!questionsReady) return;
+    if (!questionsReady || !reviewed) return;
     const iso = fromLocalInput(startsAt);
     const parsed = Date.parse(iso);
     if (!Number.isFinite(parsed) || parsed <= Date.now()) {
@@ -176,16 +180,33 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
               </DialogDescription>
             </DialogHeader>
 
-            {!questionsReady && (
-              <Alert variant="destructive">
-                <AlertTitle>
-                  {questionsCount === 0
-                    ? "No questions added yet"
-                    : "Question count doesn't match the submission cap"}
-                </AlertTitle>
+            {questionsReady ? (
+              <Alert>
+                <AlertTitle>Review before you start</AlertTitle>
                 <AlertDescription>
-                  Add {event.submissionCap} question(s) before starting (currently{" "}
-                  {questionsCount}).
+                  {questionsCount} question{questionsCount === 1 ? "" : "s"}{" "}
+                  {questionsCount === 1 ? "is" : "are"} set, and each team gets one guess per
+                  question. Double-check the prompts and answers - they can&apos;t be edited
+                  once the event is live.{" "}
+                  <Link
+                    href={`/admin/events/${event.id}/questions`}
+                    className="underline underline-offset-2"
+                  >
+                    Review questions
+                  </Link>
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <Alert variant="destructive">
+                <AlertTitle>No questions added yet</AlertTitle>
+                <AlertDescription>
+                  <Link
+                    href={`/admin/events/${event.id}/questions`}
+                    className="underline underline-offset-2"
+                  >
+                    Add questions
+                  </Link>{" "}
+                  before starting the event.
                 </AlertDescription>
               </Alert>
             )}
@@ -201,6 +222,16 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
               />
               {startError && <p className="text-xs text-destructive">{startError}</p>}
             </div>
+
+            <label className="flex items-start gap-2 text-sm">
+              <Checkbox
+                checked={reviewed}
+                onCheckedChange={(checked) => setReviewed(checked === true)}
+                disabled={!questionsReady}
+              />
+              I&apos;ve reviewed the questions and answers.
+            </label>
+
             <DialogFooter>
               <Button
                 type="button"
@@ -210,7 +241,7 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={pending || !questionsReady}>
+              <Button type="submit" disabled={pending || !questionsReady || !reviewed}>
                 {pending ? "Starting…" : "Start event"}
               </Button>
             </DialogFooter>

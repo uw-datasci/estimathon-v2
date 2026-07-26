@@ -15,8 +15,17 @@ export interface Event {
   /** Set while the live timer is paused; the frozen remaining time is `endsAt - pausedAt`. */
   pausedAt: string | null;
   teamSizeCap: number;
-  /** Submission cap. Also doubles as the number of questions (one submission per question). */
-  submissionCap: number;
   status: EventStatus;
   createdAt: string;
+}
+
+/** Live counters for an event's admin overview - recomputed on join/leave/submit. */
+export interface EventStats {
+  teamCount: number;
+  playerCount: number;
+  questionCount: number;
+  /** Average distinct questions answered per team. */
+  avgAnswered: number;
+  /** Teams that have answered every question at least once. */
+  finishedCount: number;
 }

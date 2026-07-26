@@ -15,7 +15,8 @@ const teamsRoutes: FastifyPluginAsync = async (fastify) => {
     teamsRepo,
     eventsRepo,
     new SubmissionsRepository(),
-    new QuestionsRepository()
+    new QuestionsRepository(),
+    fastify.eventHub
   );
   const controller = new TeamsController(service);
 
