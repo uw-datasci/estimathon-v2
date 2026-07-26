@@ -37,8 +37,7 @@ export class TeamsService {
   /** Recompute and broadcast live join/progress counters after a roster change. */
   private async publishStats(eventId: string) {
     if (!this.hub) return;
-    const questionCount = (await this.questions?.countForEvent(eventId)) ?? 0;
-    const stats = await this.events.stats(eventId, questionCount);
+    const stats = await this.events.stats(eventId);
     this.hub.publish(eventId, { type: "event_stats", eventId, data: stats });
   }
 
@@ -152,7 +151,7 @@ export class TeamsService {
             submittedAt: s.submittedAt,
           })),
           questionInputs,
-          questionInputs.length
+          event.questionCount
         );
         return {
           team,

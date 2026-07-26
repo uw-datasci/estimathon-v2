@@ -5,17 +5,11 @@ import { ScoreCounter } from "./score-counter";
 interface ScorePanelProps {
   score: number;
   goodIntervals: number;
-  answeredCount: number;
+  remaining: number;
   questionCount: number;
 }
 
-export function ScorePanel({
-  score,
-  goodIntervals,
-  answeredCount,
-  questionCount,
-}: ScorePanelProps) {
-  const remaining = Math.max(0, questionCount - answeredCount);
+export function ScorePanel({ score, goodIntervals, remaining, questionCount }: ScorePanelProps) {
   return (
     <Card>
       <CardContent>
@@ -33,7 +27,7 @@ export function ScorePanel({
             }
           />
           <StatTile
-            label="Questions left"
+            label="Guesses left"
             value={<span className="font-semibold tabular-nums">{remaining}</span>}
           />
         </div>

@@ -10,6 +10,8 @@ const eventSchema = {
     endsAt: { type: ["string", "null"] },
     pausedAt: { type: ["string", "null"] },
     teamSizeCap: { type: "integer" },
+    questionCount: { type: "integer" },
+    submissionCap: { type: "integer" },
     status: { type: "string" },
     createdAt: { type: "string" },
   },

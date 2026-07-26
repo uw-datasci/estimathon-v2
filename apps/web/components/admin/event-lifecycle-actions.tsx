@@ -40,7 +40,7 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
   const [startError, setStartError] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState(false);
 
-  const questionsReady = questionsCount > 0;
+  const questionsReady = questionsCount === event.questionCount;
 
   async function send(
     method: "PATCH" | "POST",
@@ -184,10 +184,11 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
               <Alert>
                 <AlertTitle>Review before you start</AlertTitle>
                 <AlertDescription>
-                  {questionsCount} question{questionsCount === 1 ? "" : "s"}{" "}
-                  {questionsCount === 1 ? "is" : "are"} set, and each team gets one guess per
-                  question. Double-check the prompts and answers - they can&apos;t be edited
-                  once the event is live.{" "}
+                  {event.questionCount} question{event.questionCount === 1 ? "" : "s"}{" "}
+                  {event.questionCount === 1 ? "is" : "are"} set, and each team gets{" "}
+                  {event.submissionCap} submissions total across the whole game. Double-check
+                  the prompts and answers - they can&apos;t be edited once the event is
+                  live.{" "}
                   <Link
                     href={`/admin/events/${event.id}/questions`}
                     className="underline underline-offset-2"
@@ -198,15 +199,18 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
               </Alert>
             ) : (
               <Alert variant="destructive">
-                <AlertTitle>No questions added yet</AlertTitle>
+                <AlertTitle>Questions don&apos;t match</AlertTitle>
                 <AlertDescription>
+                  {questionsCount} of {event.questionCount} question
+                  {event.questionCount === 1 ? "" : "s"} added. The counts must match before
+                  starting -{" "}
                   <Link
                     href={`/admin/events/${event.id}/questions`}
                     className="underline underline-offset-2"
                   >
-                    Add questions
-                  </Link>{" "}
-                  before starting the event.
+                    manage questions
+                  </Link>
+                  .
                 </AlertDescription>
               </Alert>
             )}

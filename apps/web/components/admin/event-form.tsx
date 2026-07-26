@@ -22,6 +22,8 @@ const schema = z.object({
   name: z.string().min(1, "Required"),
   durationMinutes: z.coerce.number().int().positive(),
   teamSizeCap: z.coerce.number().int().positive(),
+  questionCount: z.coerce.number().int().positive(),
+  submissionCap: z.coerce.number().int().positive(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -42,6 +44,8 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
       name: initial?.name ?? "",
       durationMinutes: initial?.durationMinutes ?? 60,
       teamSizeCap: initial?.teamSizeCap ?? 5,
+      questionCount: initial?.questionCount ?? 13,
+      submissionCap: initial?.submissionCap ?? 18,
     },
   });
 
@@ -52,6 +56,8 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
         name: values.name,
         durationMinutes: values.durationMinutes,
         teamSizeCap: values.teamSizeCap,
+        questionCount: values.questionCount,
+        submissionCap: values.submissionCap,
       };
       const url = mode === "create" ? "/api/admin/events" : `/api/admin/events/${initial!.id}`;
       const method = mode === "create" ? "POST" : "PATCH";
@@ -124,6 +130,33 @@ export function EventForm({ initial, mode }: Readonly<EventFormProps>) {
                 <p className="text-xs text-destructive">{errors.teamSizeCap.message}</p>
               )}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Rules</CardTitle>
+          <CardDescription>
+            The question count must be matched exactly - add exactly this many questions
+            before starting the event. The submission cap is each team&apos;s total guess
+            budget for the whole game, including revisions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor="questionCount">Questions</Label>
+            <Input id="questionCount" type="number" min={1} {...register("questionCount")} />
+            {errors.questionCount && (
+              <p className="text-xs text-destructive">{errors.questionCount.message}</p>
+            )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="submissionCap">Submissions</Label>
+            <Input id="submissionCap" type="number" min={1} {...register("submissionCap")} />
+            {errors.submissionCap && (
+              <p className="text-xs text-destructive">{errors.submissionCap.message}</p>
+            )}
           </div>
         </CardContent>
       </Card>

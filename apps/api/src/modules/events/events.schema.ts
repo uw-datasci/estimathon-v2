@@ -10,6 +10,8 @@ const eventProps = {
   endsAt: { type: ["string", "null"] },
   pausedAt: { type: ["string", "null"] },
   teamSizeCap: { type: "integer" },
+  questionCount: { type: "integer" },
+  submissionCap: { type: "integer" },
   status: { type: "string", enum: eventStatusEnum },
   createdAt: { type: "string" },
 } as const;
@@ -34,6 +36,8 @@ const createBody = {
     name: { type: "string" },
     durationMinutes: { type: "integer", minimum: 1 },
     teamSizeCap: { type: "integer", minimum: 1 },
+    questionCount: { type: "integer", minimum: 1 },
+    submissionCap: { type: "integer", minimum: 1 },
   },
 } as const;
 
@@ -43,6 +47,8 @@ const updateBody = {
     name: { type: "string" },
     durationMinutes: { type: "integer", minimum: 1 },
     teamSizeCap: { type: "integer", minimum: 1 },
+    questionCount: { type: "integer", minimum: 1 },
+    submissionCap: { type: "integer", minimum: 1 },
     status: { type: "string", enum: eventStatusEnum },
   },
 } as const;

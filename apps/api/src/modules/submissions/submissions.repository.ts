@@ -41,6 +41,14 @@ export class SubmissionsRepository {
     return rows.map(rowToSubmission);
   }
 
+  async countForTeam(teamId: string): Promise<number> {
+    const row = await queryOne<{ count: string }>(
+      `SELECT count(*)::text AS count FROM submissions WHERE team_id = $1`,
+      [teamId]
+    );
+    return row ? Number(row.count) : 0;
+  }
+
   async listForEvent(eventId: string): Promise<Submission[]> {
     const rows = await query<SubmissionRow>(
       `SELECT s.* FROM submissions s

@@ -117,11 +117,14 @@ export function PlayClient({
     () => new Map(score.evaluations.map((e) => [e.questionId, e.correct])),
     [score.evaluations]
   );
-  const locked = expired || Boolean(timing.pausedAt);
+  const remaining = Math.max(0, event.submissionCap - score.submissionCount);
+  const locked = expired || Boolean(timing.pausedAt) || remaining === 0;
 
   async function handleSubmit(questionId: string, min: number, max: number) {
     if (locked) {
-      toast.error(expired ? "Time's up" : "Event is paused");
+      if (expired) toast.error("Time's up");
+      else if (remaining === 0) toast.error("Submission limit reached");
+      else toast.error("Event is paused");
       return;
     }
     const res = await fetch("/api/submissions", {
@@ -176,8 +179,8 @@ export function PlayClient({
       <ScorePanel
         score={score.score}
         goodIntervals={score.goodIntervals}
-        answeredCount={latest.size}
-        questionCount={questions.length}
+        remaining={remaining}
+        questionCount={event.questionCount}
       />
 
       <div className="grid gap-3">

@@ -15,6 +15,11 @@ export interface Event {
   /** Set while the live timer is paused; the frozen remaining time is `endsAt - pausedAt`. */
   pausedAt: string | null;
   teamSizeCap: number;
+  /** Number of questions the game is configured for. Scoring denominator, and the
+   *  exact count `start` requires before the event can go live. */
+  questionCount: number;
+  /** Total submissions a team may make across the whole event. Revisions count. */
+  submissionCap: number;
   status: EventStatus;
   createdAt: string;
 }
@@ -23,6 +28,7 @@ export interface Event {
 export interface EventStats {
   teamCount: number;
   playerCount: number;
+  /** The event's configured question count. */
   questionCount: number;
   /** Average distinct questions answered per team. */
   avgAnswered: number;

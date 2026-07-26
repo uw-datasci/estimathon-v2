@@ -45,6 +45,11 @@ export class SubmissionsService {
       throw new HttpError(400, "Event is paused");
     }
 
+    const count = await this.submissions.countForTeam(team.id);
+    if (count >= event.submissionCap) {
+      throw new HttpError(409, "Submission limit reached");
+    }
+
     // Validate the range
     if (
       !Number.isFinite(input.minValue) ||
@@ -105,8 +110,7 @@ export class SubmissionsService {
     });
     await leaderboard.publishLeaderboard(eventId);
 
-    const questionCount = await this.questions.countForEvent(eventId);
-    const stats = await this.events.stats(eventId, questionCount);
+    const stats = await this.events.stats(eventId);
     hub.publish(eventId, { type: "event_stats", eventId, data: stats });
   }
 
@@ -143,7 +147,7 @@ export class SubmissionsService {
         submittedAt: s.submittedAt,
       })),
       allQuestions.map((q) => ({ id: q.id, answer: q.answer ?? 0 })),
-      allQuestions.length
+      event.questionCount
     );
     return { teamId, ...result };
   }

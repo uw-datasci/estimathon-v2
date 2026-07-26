@@ -60,18 +60,24 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
             <CardTitle className="text-base">Overview</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            <dl className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-3">
+            <dl className="grid grid-cols-2 gap-x-8 gap-y-2 sm:grid-cols-4">
               <div>
                 <dt className="text-xs tracking-wide uppercase">Window</dt>
                 <dd className="text-foreground">{formatRange(event.startsAt, event.endsAt)}</dd>
               </div>
               <div>
                 <dt className="text-xs tracking-wide uppercase">Questions</dt>
-                <dd className="text-foreground">{questionsCount}</dd>
+                <dd className="text-foreground">
+                  {questionsCount} / {event.questionCount}
+                </dd>
               </div>
               <div>
                 <dt className="text-xs tracking-wide uppercase">Team cap</dt>
                 <dd className="text-foreground">{event.teamSizeCap}</dd>
+              </div>
+              <div>
+                <dt className="text-xs tracking-wide uppercase">Submissions cap</dt>
+                <dd className="text-foreground">{event.submissionCap}</dd>
               </div>
             </dl>
           </CardContent>
