@@ -23,10 +23,12 @@ export default async function LandingPage() {
     };
   }
 
+  const loginUrl = await buildLoginUrl();
+
   return (
     <>
       <Backdrop />
-      <LandingHero event={event} loginUrl={buildLoginUrl()} session={session} />
+      <LandingHero event={event} loginUrl={loginUrl} session={session} />
     </>
   );
 }

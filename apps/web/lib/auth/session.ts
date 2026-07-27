@@ -67,7 +67,7 @@ export async function getSessionIdentity(): Promise<SessionIdentity | null> {
  */
 export async function requireSession(returnTo?: string): Promise<AuthenticatedUser> {
   const user = await getAuthenticatedUser();
-  if (!user) redirect(buildLoginUrl(returnTo));
+  if (!user) redirect(await buildLoginUrl(returnTo));
 
   return user;
 }
