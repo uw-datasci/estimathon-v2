@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { PauseCircle } from "lucide-react";
 import { Button } from "@estimathon/ui/components/button";
 import { Alert, AlertDescription, AlertTitle } from "@estimathon/ui/components/alert";
+import { TooltipProvider } from "@estimathon/ui/components/tooltip";
 import { useEventStream, useLeaderboardQuery } from "@/hooks/use-event-stream";
 import type { SessionIdentity } from "@/lib/auth/session";
 import { Timer } from "./timer";
@@ -54,7 +55,7 @@ export function PlayClient({
   initialLeaderboard = [],
   accessToken = null,
   currentUser = null,
-}: PlayClientProps) {
+}: Readonly<PlayClientProps>) {
   const router = useRouter();
   const [submissions, setSubmissions] = useState<Submission[]>(initialSubmissions);
   const [score, setScore] = useState<TeamScore>(initialScore);
@@ -160,91 +161,95 @@ export function PlayClient({
   }
 
   return (
-    <div className="grid gap-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-3 border-b pb-4">
-        <div>
-          <p className="text-[10px] tracking-widest text-muted-foreground uppercase">
-            {event.name}
-          </p>
-          <h1 className="text-xl font-semibold tracking-tight">
-            {team.name ?? `Team ${team.code}`}
-            <span className="ml-2 text-sm font-normal text-muted-foreground">
-              code <span className="font-mono">{team.code}</span>
-            </span>
-          </h1>
-        </div>
-        {/* PlayClient only renders for an active event, which always has a
-            timer running - endsAt is guaranteed set at that point. */}
-        <Timer endsAt={timing.endsAt!} pausedAt={timing.pausedAt} onExpire={handleExpire} />
-      </div>
-
-      {timing.pausedAt && (
-        <Alert>
-          <PauseCircle />
-          <AlertTitle>The host paused the event</AlertTitle>
-          <AlertDescription>Submissions are locked until it resumes.</AlertDescription>
-        </Alert>
-      )}
-
-      <ScorePanel
-        score={score.score}
-        goodIntervals={score.goodIntervals}
-        remaining={remaining}
-        questionCount={event.questionCount}
-      />
-
-      <div className="grid gap-3">
-        {questions.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-            No questions yet. Hang tight.
+    <TooltipProvider>
+      <div className="grid gap-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-3 border-b pb-4">
+          <div>
+            <p className="text-[10px] tracking-widest text-muted-foreground uppercase">
+              {event.name}
+            </p>
+            <h1 className="text-xl font-semibold tracking-tight">
+              {team.name ?? `Team ${team.code}`}
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                code <span className="font-mono">{team.code}</span>
+              </span>
+            </h1>
           </div>
-        ) : (
-          questions.map((q) => {
-            const editors = (editingByQuestion.get(q.id) ?? []).filter(
-              (e) => e.userId !== currentUser?.userId
-            );
-            return (
-              <QuestionCard
-                key={q.id}
-                question={q}
-                latest={latest.get(q.id) ?? null}
-                disabled={locked}
-                onSubmit={(min, max) => handleSubmit(q.id, min, max)}
-                editors={editors}
-                correct={correctByQuestion.get(q.id)}
-                presence={
-                  currentUser ? { eventId: event.id, teamId: team.id, currentUser } : undefined
-                }
-              />
-            );
-          })
+          {/* PlayClient only renders for an active event, which always has a
+            timer running - endsAt is guaranteed set at that point. */}
+          <Timer endsAt={timing.endsAt!} pausedAt={timing.pausedAt} onExpire={handleExpire} />
+        </div>
+
+        {timing.pausedAt && (
+          <Alert>
+            <PauseCircle />
+            <AlertTitle>The host paused the event</AlertTitle>
+            <AlertDescription>Submissions are locked until it resumes.</AlertDescription>
+          </Alert>
+        )}
+
+        <ScorePanel
+          score={score.score}
+          goodIntervals={score.goodIntervals}
+          remaining={remaining}
+          questionCount={event.questionCount}
+        />
+
+        <div className="grid gap-3">
+          {questions.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+              No questions yet. Hang tight.
+            </div>
+          ) : (
+            questions.map((q) => {
+              const editors = (editingByQuestion.get(q.id) ?? []).filter(
+                (e) => e.userId !== currentUser?.userId
+              );
+              return (
+                <QuestionCard
+                  key={q.id}
+                  question={q}
+                  latest={latest.get(q.id) ?? null}
+                  disabled={locked}
+                  onSubmit={(min, max) => handleSubmit(q.id, min, max)}
+                  editors={editors}
+                  correct={correctByQuestion.get(q.id)}
+                  presence={
+                    currentUser
+                      ? { eventId: event.id, teamId: team.id, currentUser }
+                      : undefined
+                  }
+                />
+              );
+            })
+          )}
+        </div>
+
+        {accessToken && leaderboard.length > 0 && (
+          <section className="grid gap-3 border-t pt-6">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold tracking-tight">Leaderboard</h2>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/leaderboard">Full view →</Link>
+              </Button>
+            </div>
+            <ol className="divide-y rounded-lg border text-sm">
+              {leaderboard.slice(0, 5).map((entry, i) => (
+                <li
+                  key={entry.teamId}
+                  className="flex items-center justify-between gap-2 px-3 py-2"
+                >
+                  <span className="w-6 text-muted-foreground tabular-nums">{i + 1}</span>
+                  <span className="min-w-0 flex-1 truncate font-medium">
+                    {entry.name ?? entry.code}
+                  </span>
+                  <span className="font-semibold tabular-nums">{entry.score}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
         )}
       </div>
-
-      {accessToken && leaderboard.length > 0 && (
-        <section className="grid gap-3 border-t pt-6">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold tracking-tight">Leaderboard</h2>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/leaderboard">Full view →</Link>
-            </Button>
-          </div>
-          <ol className="divide-y rounded-lg border text-sm">
-            {leaderboard.slice(0, 5).map((entry, i) => (
-              <li
-                key={entry.teamId}
-                className="flex items-center justify-between gap-2 px-3 py-2"
-              >
-                <span className="w-6 text-muted-foreground tabular-nums">{i + 1}</span>
-                <span className="min-w-0 flex-1 truncate font-medium">
-                  {entry.name ?? entry.code}
-                </span>
-                <span className="font-semibold tabular-nums">{entry.score}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
-    </div>
+    </TooltipProvider>
   );
 }

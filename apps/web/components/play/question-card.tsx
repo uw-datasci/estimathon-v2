@@ -10,12 +10,15 @@ import {
   Avatar,
   AvatarFallback,
   AvatarGroup,
+  AvatarGroupCount,
   AvatarImage,
 } from "@estimathon/ui/components/avatar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@estimathon/ui/components/tooltip";
 import type { EditingPresence, Question, Submission } from "@estimathon/types";
 import { cn } from "@estimathon/ui/lib/utils";
 import { postEditingPresence } from "@/hooks/use-event-stream";
 import type { SessionIdentity } from "@/lib/auth/session";
+import { presenceColor } from "@/lib/presence/user-color";
 
 const HEARTBEAT_MS = 10_000;
 const BLUR_GRACE_MS = 150;
@@ -147,9 +150,18 @@ export function QuestionCard({
         scale: [1, 1.02, 1],
         transition: { duration: 0.4, ease: "easeOut" as const },
       };
+  const editorColors = editors.map((editor) => presenceColor(editor.userId));
+  // A single editor still needs two gradient stops to render as a solid
+  // outline rather than a transparent-to-color fade.
+  const outlineStops =
+    editorColors.length === 1 ? [editorColors[0], editorColors[0]] : editorColors;
 
   return (
-    <motion.div key={pulseToken} animate={pulseToken > 0 ? settleAnimation : undefined}>
+    <motion.div
+      key={pulseToken}
+      animate={pulseToken > 0 ? settleAnimation : undefined}
+      className="relative"
+    >
       <Card
         className={cn(
           "relative overflow-hidden transition-colors",
@@ -157,8 +169,7 @@ export function QuestionCard({
           evaluated &&
             (correct
               ? "border-emerald-500/60 bg-emerald-500/5"
-              : "border-red-500/60 bg-red-500/5"),
-          beingEdited && "border-amber-400/60 ring-2 ring-amber-400/30"
+              : "border-red-500/60 bg-red-500/5")
         )}
       >
         <motion.div
@@ -169,6 +180,26 @@ export function QuestionCard({
           className="pointer-events-none absolute inset-0 rounded-[inherit] ring-2 ring-primary/40 ring-offset-2"
           aria-hidden
         />
+        {beingEdited && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-[inherit]"
+            style={{
+              padding: 2,
+              background: `linear-gradient(120deg, ${outlineStops.join(", ")})`,
+              WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+              WebkitMaskComposite: "xor",
+              mask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+              maskComposite: "exclude",
+            }}
+          />
+        )}
+        {beingEdited && (
+          <span className="sr-only">
+            {editors.map((editor) => editor.name).join(", ")}{" "}
+            {editors.length === 1 ? "is" : "are"} answering this question
+          </span>
+        )}
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between gap-2 text-sm font-medium">
             <span>
@@ -193,25 +224,6 @@ export function QuestionCard({
               locked && <Lock className="text-primary" size={14} aria-label="Range submitted" />
             )}
           </CardTitle>
-          {beingEdited && (
-            <div className="flex items-center gap-2 pt-1">
-              <AvatarGroup>
-                {editors.slice(0, 3).map((editor) => (
-                  <Avatar key={editor.userId} size="sm">
-                    {editor.avatarUrl && (
-                      <AvatarImage src={editor.avatarUrl} alt={editor.name} />
-                    )}
-                    <AvatarFallback>{initials(editor.name)}</AvatarFallback>
-                  </Avatar>
-                ))}
-              </AvatarGroup>
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                {editors.length === 1
-                  ? `${editors[0]!.name} is answering…`
-                  : `${editors[0]!.name} +${editors.length - 1} answering…`}
-              </span>
-            </div>
-          )}
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
@@ -251,6 +263,33 @@ export function QuestionCard({
           </div>
         </CardContent>
       </Card>
+      {beingEdited && (
+        <div className="absolute -top-2 right-2 z-10">
+          <AvatarGroup>
+            {editors.slice(0, 3).map((editor) => (
+              <Tooltip key={editor.userId}>
+                <TooltipTrigger asChild>
+                  <Avatar size="sm">
+                    {editor.avatarUrl && <AvatarImage src={editor.avatarUrl} alt="" />}
+                    <AvatarFallback
+                      className="font-semibold text-white"
+                      style={{ background: presenceColor(editor.userId) }}
+                    >
+                      {initials(editor.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </TooltipTrigger>
+                <TooltipContent>{editor.name}</TooltipContent>
+              </Tooltip>
+            ))}
+            {editors.length > 3 && (
+              <AvatarGroupCount className="size-6 text-xs">
+                +{editors.length - 3}
+              </AvatarGroupCount>
+            )}
+          </AvatarGroup>
+        </div>
+      )}
     </motion.div>
   );
 }
