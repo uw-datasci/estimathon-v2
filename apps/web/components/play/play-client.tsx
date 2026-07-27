@@ -103,11 +103,13 @@ export function PlayClient({
     });
   }, []);
 
+  const onTeamScore = useCallback((s: TeamScore) => setScore({ ...s }), []);
+
   useEventStream({
     eventId: accessToken ? event.id : null,
     accessToken,
     teamId: team.id,
-    onTeamScore: (s) => setScore({ ...s }),
+    onTeamScore,
     onEventStatus,
     onSubmission,
     onEditing,

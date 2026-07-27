@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -18,7 +18,7 @@ import {
   DialogTitle,
 } from "@estimathon/ui/components/dialog";
 import type { Event } from "@estimathon/types";
-import { toLocalInput, fromLocalInput } from "@/lib/event/helpers";
+import { toLocalInput, fromLocalInput, hasEventStarted } from "@/lib/event/helpers";
 
 interface Props {
   event: Event;
@@ -28,6 +28,40 @@ interface Props {
 
 function defaultStartValue(): string {
   return toLocalInput(new Date(Date.now() + 5 * 60_000).toISOString());
+}
+
+function pad(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** Ticking "starts in HH:MM:SS" label, shown in place of Pause until `startsAt` arrives. */
+function StartsInLabel({ startsAt }: { readonly startsAt: string }) {
+  const router = useRouter();
+  const [remainingMs, setRemainingMs] = useState(() => Date.parse(startsAt) - Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const ms = Date.parse(startsAt) - Date.now();
+      setRemainingMs(ms);
+      if (ms <= 0) {
+        clearInterval(interval);
+        router.refresh();
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startsAt, router]);
+
+  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const label = h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+
+  return (
+    <span className="text-sm text-muted-foreground tabular-nums" aria-label="Time until start">
+      Starts in {label}
+    </span>
+  );
 }
 
 export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>) {
@@ -101,7 +135,9 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
     case "active":
       primary = (
         <div className="flex flex-wrap items-center gap-2">
-          {event.pausedAt ? (
+          {event.startsAt && !hasEventStarted(event.startsAt) ? (
+            <StartsInLabel startsAt={event.startsAt} />
+          ) : event.pausedAt ? (
             <Button
               variant="outline"
               disabled={pending}
