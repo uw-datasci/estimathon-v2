@@ -61,14 +61,6 @@ const startBody = {
   },
 } as const;
 
-const addTimeBody = {
-  type: "object",
-  required: ["seconds"],
-  properties: {
-    seconds: { type: "integer" },
-  },
-} as const;
-
 export const eventsSchema = {
   getActive: {
     tags: ["events"],
@@ -126,13 +118,6 @@ export const eventsSchema = {
     tags: ["events", "admin"],
     summary: "Resume a paused event's timer",
     params: { type: "object", properties: { id: { type: "string" } } },
-    response: { 200: eventObject },
-  },
-  addTime: {
-    tags: ["events", "admin"],
-    summary: "Nudge the live timer by +/-30s increments",
-    params: { type: "object", properties: { id: { type: "string" } } },
-    body: addTimeBody,
     response: { 200: eventObject },
   },
   stats: {

@@ -4,8 +4,6 @@ import { QuestionsRepository } from "../questions/questions.repository";
 import { EventsRepository } from "./events.repository";
 import type { CreateEventInput, UpdateEventInput } from "./events.types";
 
-const ADD_TIME_STEP_SECONDS = 30;
-
 class HttpError extends Error {
   constructor(
     public readonly statusCode: number,
@@ -146,29 +144,6 @@ export class EventsService {
     const updated = await this.repository.update(id, {
       endsAt,
       pausedAt: null,
-    });
-    if (!updated) throw new HttpError(404, "Event not found");
-    this.broadcastStatus(updated);
-    return updated;
-  }
-
-  /** Nudge the timer by +/-30s increments. Works while paused too, since the
-   * frozen remaining time is `endsAt - pausedAt`. Clamped so remaining time
-   * never goes negative. */
-  async addTime(id: string, seconds: number): Promise<Event> {
-    const event = await this.requireActive(id);
-    if (!event.endsAt) throw new HttpError(400, "Event has no timer");
-    if (!Number.isInteger(seconds) || seconds % ADD_TIME_STEP_SECONDS !== 0 || seconds === 0) {
-      throw new HttpError(
-        400,
-        `seconds must be a non-zero multiple of ${ADD_TIME_STEP_SECONDS}`
-      );
-    }
-    const anchor = event.pausedAt ?? new Date().toISOString();
-    const floorMs = Date.parse(anchor);
-    const newEndsMs = Math.max(floorMs, Date.parse(event.endsAt) + seconds * 1000);
-    const updated = await this.repository.update(id, {
-      endsAt: new Date(newEndsMs).toISOString(),
     });
     if (!updated) throw new HttpError(404, "Event not found");
     this.broadcastStatus(updated);

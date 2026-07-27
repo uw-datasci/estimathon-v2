@@ -9,7 +9,7 @@ export interface Event {
   durationMinutes: number;
   /**
    * Stored end of the timer, set on start as `startsAt + durationMinutes`
-   * and nudged by pause/resume and +/-30s adjustments. Null until started.
+   * and shifted forward by pause/resume. Null until started.
    */
   endsAt: string | null;
   /** Set while the live timer is paused; the frozen remaining time is `endsAt - pausedAt`. */

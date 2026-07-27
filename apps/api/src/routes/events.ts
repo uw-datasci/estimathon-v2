@@ -51,11 +51,6 @@ const eventsRoutes: FastifyPluginAsync = async (fastify) => {
     { schema: eventsSchema.resume, preHandler: fastify.requireAdmin },
     controller.resume
   );
-  fastify.post(
-    "/admin/events/:id/add-time",
-    { schema: eventsSchema.addTime, preHandler: fastify.requireAdmin },
-    controller.addTime
-  );
   fastify.get(
     "/admin/events/:id/stats",
     { schema: eventsSchema.stats, preHandler: fastify.requireAdmin },

@@ -26,8 +26,6 @@ interface Props {
   questionsCount: number;
 }
 
-const ADD_TIME_STEP_SECONDS = 30;
-
 function defaultStartValue(): string {
   return toLocalInput(new Date(Date.now() + 5 * 60_000).toISOString());
 }
@@ -103,26 +101,6 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
     case "active":
       primary = (
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pending}
-            onClick={() =>
-              send("POST", "/add-time", { seconds: -ADD_TIME_STEP_SECONDS }, "Removed 30s")
-            }
-          >
-            −30s
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pending}
-            onClick={() =>
-              send("POST", "/add-time", { seconds: ADD_TIME_STEP_SECONDS }, "Added 30s")
-            }
-          >
-            +30s
-          </Button>
           {event.pausedAt ? (
             <Button
               variant="outline"
@@ -175,8 +153,8 @@ export function EventLifecycleActions({ event, questionsCount }: Readonly<Props>
               <DialogTitle>Start event</DialogTitle>
               <DialogDescription>
                 Pick when the event should start - players see a countdown until then. Once
-                live, use Pause and +/-30s to adjust the clock; the start time can&apos;t be
-                edited afterward.
+                live, use Pause to hold the clock; the start time can&apos;t be edited
+                afterward.
               </DialogDescription>
             </DialogHeader>
 

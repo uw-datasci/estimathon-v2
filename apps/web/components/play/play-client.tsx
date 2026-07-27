@@ -4,7 +4,9 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { PauseCircle } from "lucide-react";
 import { Button } from "@estimathon/ui/components/button";
+import { Alert, AlertDescription, AlertTitle } from "@estimathon/ui/components/alert";
 import { useEventStream, useLeaderboardQuery } from "@/hooks/use-event-stream";
 import type { SessionIdentity } from "@/lib/auth/session";
 import { Timer } from "./timer";
@@ -175,6 +177,14 @@ export function PlayClient({
             timer running - endsAt is guaranteed set at that point. */}
         <Timer endsAt={timing.endsAt!} pausedAt={timing.pausedAt} onExpire={handleExpire} />
       </div>
+
+      {timing.pausedAt && (
+        <Alert>
+          <PauseCircle />
+          <AlertTitle>The host paused the event</AlertTitle>
+          <AlertDescription>Submissions are locked until it resumes.</AlertDescription>
+        </Alert>
+      )}
 
       <ScorePanel
         score={score.score}

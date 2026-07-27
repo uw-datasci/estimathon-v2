@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { TeamsRepository } from "../teams/teams.repository";
+import type { EventsRepository } from "../events/events.repository";
 import type { EventHub } from "./event-hub";
 import type { EditingPresenceStore } from "./editing-presence";
 
@@ -17,7 +18,8 @@ export class RealtimeController {
   constructor(
     private readonly hub: EventHub,
     private readonly presence: EditingPresenceStore,
-    private readonly teams: TeamsRepository
+    private readonly teams: TeamsRepository,
+    private readonly events: EventsRepository
   ) {
     this.stream = this.stream.bind(this);
     this.setEditing = this.setEditing.bind(this);
@@ -66,5 +68,21 @@ export class RealtimeController {
     reply.raw.flushHeaders();
 
     this.hub.subscribe(eventId, reply);
+
+    // Snapshot the current status immediately so a client that just
+    // (re)connected - e.g. after a dropped wifi connection - self-heals to
+    // the true paused/running state instead of waiting for the next admin
+    // action to broadcast.
+    const event = await this.events.findById(eventId);
+    if (event) {
+      this.hub.send(eventId, reply, {
+        type: "event_status",
+        eventId,
+        status: event.status,
+        startsAt: event.startsAt,
+        endsAt: event.endsAt,
+        pausedAt: event.pausedAt,
+      });
+    }
   }
 }

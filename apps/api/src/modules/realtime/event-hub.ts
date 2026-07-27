@@ -41,13 +41,17 @@ export class EventHub {
   publish(eventId: string, message: ServerMessage) {
     const set = this.subscribers.get(eventId);
     if (!set?.size) return;
-    const payload = `data: ${JSON.stringify(message)}\n\n`;
     for (const reply of [...set]) {
-      try {
-        reply.raw.write(payload);
-      } catch {
-        this.unsubscribe(eventId, reply);
-      }
+      this.send(eventId, reply, message);
+    }
+  }
+
+  /** Write a single message to one subscriber - used for the connect-time snapshot. */
+  send(eventId: string, reply: FastifyReply, message: ServerMessage) {
+    try {
+      reply.raw.write(`data: ${JSON.stringify(message)}\n\n`);
+    } catch {
+      this.unsubscribe(eventId, reply);
     }
   }
 }
