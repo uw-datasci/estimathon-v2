@@ -1,8 +1,8 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { clientConfig } from "@/config/client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { buildLoginUrl } from "@/lib/auth/login-url";
 import { isStaffRole, parseUserRole, type AuthenticatedUser } from "@estimathon/types";
 
 /**
@@ -67,11 +67,8 @@ export async function getSessionIdentity(): Promise<SessionIdentity | null> {
  */
 export async function requireSession(returnTo?: string): Promise<AuthenticatedUser> {
   const user = await getAuthenticatedUser();
-  if (!user) {
-    const loginUrl = new URL("/login", clientConfig.mainSiteUrl);
-    if (returnTo) loginUrl.searchParams.set("redirect", returnTo);
-    redirect(loginUrl.toString());
-  }
+  if (!user) redirect(buildLoginUrl(returnTo));
+
   return user;
 }
 
