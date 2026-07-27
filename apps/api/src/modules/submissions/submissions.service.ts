@@ -72,7 +72,7 @@ export class SubmissionsService {
     });
 
     const teamScore = await this.computeTeamScore(team.id, event.id);
-    await this.broadcastSubmission(event.id, team, submission, teamScore);
+    await this.broadcastSubmission(event.id, team, submission, teamScore, question.prompt);
     return { submission, teamScore };
   }
 
@@ -80,7 +80,8 @@ export class SubmissionsService {
     eventId: string,
     team: { id: string; code: string; name: string | null },
     submission: Submission,
-    teamScore: TeamScore
+    teamScore: TeamScore,
+    questionPrompt: string
   ) {
     if (!this.realtime) return;
     const { hub, leaderboard } = this.realtime;
@@ -99,6 +100,7 @@ export class SubmissionsService {
       teamId: team.id,
       teamCode: team.code,
       teamName: team.name,
+      questionPrompt,
       submission: {
         id: submission.id,
         questionId: submission.questionId,

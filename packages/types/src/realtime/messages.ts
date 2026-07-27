@@ -35,6 +35,7 @@ export type ServerMessage =
       teamId: string;
       teamCode: string;
       teamName: string | null;
+      questionPrompt: string;
       submission: Pick<
         Submission,
         "id" | "questionId" | "userId" | "minValue" | "maxValue" | "submittedAt"

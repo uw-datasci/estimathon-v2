@@ -10,6 +10,7 @@ interface FeedItem {
   id: string;
   teamCode: string;
   teamName: string | null;
+  questionPrompt: string;
   minValue: number;
   maxValue: number;
   submittedAt: string;
@@ -21,7 +22,11 @@ interface LiveMonitorProps {
   initialLeaderboard: LeaderboardEntry[];
 }
 
-export function LiveMonitor({ eventId, accessToken, initialLeaderboard }: LiveMonitorProps) {
+export function LiveMonitor({
+  eventId,
+  accessToken,
+  initialLeaderboard,
+}: Readonly<LiveMonitorProps>) {
   const [feed, setFeed] = useState<FeedItem[]>([]);
 
   const onSubmission = useCallback((msg: ServerMessage & { type: "submission" }) => {
@@ -30,6 +35,7 @@ export function LiveMonitor({ eventId, accessToken, initialLeaderboard }: LiveMo
         id: `${msg.submission.id}-${msg.submission.submittedAt}`,
         teamCode: msg.teamCode,
         teamName: msg.teamName,
+        questionPrompt: msg.questionPrompt,
         minValue: msg.submission.minValue,
         maxValue: msg.submission.maxValue,
         submittedAt: msg.submission.submittedAt,
@@ -65,6 +71,7 @@ export function LiveMonitor({ eventId, accessToken, initialLeaderboard }: LiveMo
                       {new Date(item.submittedAt).toLocaleTimeString()}
                     </span>
                   </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.questionPrompt}</p>
                   <p className="mt-1 font-mono text-xs text-muted-foreground">
                     [{item.minValue}, {item.maxValue}]
                   </p>
