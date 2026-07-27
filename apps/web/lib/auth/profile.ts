@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Profile } from "@estimathon/types";
 
@@ -16,8 +17,11 @@ interface ProfileRow {
  * Reads a user profile from the main club site's `profiles` table. Returns
  * null if the profile doesn't exist (e.g. user hasn't completed onboarding
  * on the main site yet).
+ *
+ * Wrapped in React's `cache()` so multiple callers within the same request
+ * (e.g. `getAuthenticatedUser()` and `/api/me`) share one Supabase round trip.
  */
-export async function getProfile(userId: string): Promise<Profile | null> {
+export const getProfile = cache(async (userId: string): Promise<Profile | null> => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("profiles")
@@ -34,4 +38,4 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     faculty: data.faculty,
     term: data.term,
   };
-}
+});

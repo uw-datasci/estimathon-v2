@@ -18,7 +18,7 @@ export default async function LandingPage() {
     const me = await proxyApiJson<MeResponse>("/me");
     redirectFromLanding(me.data);
     session = {
-      email: user.email,
+      name: [user.firstName, user.lastName].filter(Boolean).join(" ") || null,
       hasEvent: Boolean(me.data?.event),
     };
   }

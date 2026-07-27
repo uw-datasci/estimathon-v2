@@ -15,6 +15,7 @@ const schema = {
     HOST: { type: "string", default: "localhost" },
     CORS_ORIGIN: { type: "string", default: "" },
     SUPABASE_URL: { type: "string", default: "" },
+    SUPABASE_PUBLISHABLE_KEY: { type: "string", default: "" },
   },
 } as const;
 

@@ -6,7 +6,7 @@ import { Countdown } from "@/components/shared/countdown";
 import type { Event } from "@estimathon/types";
 
 export interface LandingSession {
-  email: string | null;
+  name: string | null;
   hasEvent: boolean;
 }
 
@@ -49,9 +49,9 @@ export function LandingHero({ event, loginUrl, session }: Readonly<LandingHeroPr
 
         {session ? (
           <div className="mt-10 space-y-4">
-            {session.email ? (
+            {session.name ? (
               <p className="text-center text-sm text-portage-100">
-                Signed in as {session.email}
+                Signed in as {session.name}
               </p>
             ) : null}
             {session.hasEvent ? (

@@ -17,6 +17,9 @@ export interface AuthenticatedUser {
   id: string;
   email: string | null;
   role: UserRole;
+  firstName: string | null;
+  lastName: string | null;
+  watIam: string | null;
 }
 
 export interface Profile {

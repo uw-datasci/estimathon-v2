@@ -3,7 +3,9 @@
  *
  * The token is issued by the main club site (uwdsc-website-v3) using
  * Supabase Auth; this server only verifies and trusts it. We do not have a
- * Supabase client here.
+ * Supabase client here, but we do read `public.profiles` directly over
+ * PostgREST (same Supabase project as the main site) using the caller's own
+ * token, since the API has no local profile store - see `profile-cache.ts`.
  *
  * Verification uses the project's JWKS (asymmetric signing keys). Public keys are
  * fetched from `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`.
@@ -14,12 +16,14 @@
  *                            unless `app_metadata.role` is staff (`pres`, `admin`, or `exec`)
  *
  * Request augmentation:
- *   request.user          - { id, email, role } when a valid token is present
+ *   request.user          - { id, email, role, firstName, lastName, watIam }
+ *                            when a valid token is present
  */
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import type { JWTPayload } from "jose";
 import { isStaffRole, parseUserRole, type AuthenticatedUser } from "@estimathon/types";
+import { ProfileCache } from "./profile-cache";
 
 interface SupabaseJWTPayload extends JWTPayload {
   sub: string;
@@ -53,15 +57,26 @@ function extractToken(request: FastifyRequest): string | null {
   return null;
 }
 
-function payloadToUser(payload: SupabaseJWTPayload): AuthenticatedUser {
+async function payloadToUser(
+  payload: SupabaseJWTPayload,
+  token: string,
+  profileCache: ProfileCache
+): Promise<AuthenticatedUser> {
   const role = parseUserRole(payload.app_metadata?.role);
-  return { id: payload.sub, email: payload.email ?? null, role };
+  const profile = await profileCache.get(payload.sub, token);
+  return { id: payload.sub, email: payload.email ?? null, role, ...profile };
 }
 
 export async function registerAuth(fastify: FastifyInstance) {
   const supabaseUrl = fastify.config.SUPABASE_URL.trim();
   const jwks = supabaseUrl.length > 0 ? createRemoteJWKSet(supabaseJwksUrl(supabaseUrl)) : null;
   const issuer = supabaseUrl.length > 0 ? `${supabaseAuthBaseUrl(supabaseUrl)}/auth/v1` : null;
+  const profileCache = new ProfileCache(
+    supabaseUrl,
+    fastify.config.SUPABASE_PUBLISHABLE_KEY.trim(),
+    fastify.log
+  );
+  fastify.addHook("onClose", async () => profileCache.dispose());
 
   if (!jwks) fastify.log.warn("SUPABASE_URL is not set");
 
@@ -89,7 +104,7 @@ export async function registerAuth(fastify: FastifyInstance) {
         request.log.warn({ payload }, "auth: token missing sub");
         return null;
       }
-      return payloadToUser(payload as SupabaseJWTPayload);
+      return await payloadToUser(payload as SupabaseJWTPayload, token, profileCache);
     } catch (err) {
       request.log.warn(
         { err: (err as Error).message, issuer, tokenPrefix: token.slice(0, 24) },

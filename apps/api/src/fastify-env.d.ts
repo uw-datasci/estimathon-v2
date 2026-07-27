@@ -13,6 +13,7 @@ declare module "fastify" {
       HOST: string;
       CORS_ORIGIN: string;
       SUPABASE_URL: string;
+      SUPABASE_PUBLISHABLE_KEY: string;
     };
     requireAuth: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requireAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
