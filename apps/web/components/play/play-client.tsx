@@ -159,7 +159,13 @@ export function PlayClient({
     if (expired) return;
     setExpired(true);
     toast.info("Time's up");
-    router.refresh();
+    // No router.refresh() here: with 50-75 players the local countdown hits
+    // zero for everyone within the same second, and a refresh is a 5-request
+    // page reload (see PlayPage) - a synchronized burst that alone can trip
+    // the per-user rate limit. Nothing here needs a refetch: the server
+    // independently enforces the event window (submissions.service.ts checks
+    // `now > event.endsAt`), and an actual status change to "ended"/"archived"
+    // still arrives - and redirects - via the onEventStatus SSE handler above.
   }
 
   return (

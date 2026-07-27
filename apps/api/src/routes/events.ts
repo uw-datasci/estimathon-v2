@@ -12,8 +12,15 @@ const eventsRoutes: FastifyPluginAsync = async (fastify) => {
   const service = new EventsService(repository, fastify.eventHub, questionsRepository);
   const controller = new EventsController(service);
 
-  // Public - used by the marketing landing page for the countdown.
-  fastify.get("/events/active", { schema: eventsSchema.getActive }, controller.getActive);
+  // Public - used by the marketing landing page for the countdown. Unauthenticated,
+  // so the rate limiter falls back to keying by IP; every player's browser hitting
+  // this on page load would otherwise collapse into one shared bucket, so it gets
+  // a generous limit of its own instead of the per-user default.
+  fastify.get(
+    "/events/active",
+    { schema: eventsSchema.getActive, config: { rateLimit: { max: 500, timeWindow: "1 minute" } } },
+    controller.getActive
+  );
   fastify.get(
     "/events/:id",
     { schema: eventsSchema.getById, preHandler: fastify.requireAuth },

@@ -71,6 +71,7 @@ export function QuestionCard({
   const justLockedRef = useRef(0);
   const [pulseToken, setPulseToken] = useState(0);
   const editingRef = useRef(false);
+  const isFocusedRef = useRef(false);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -103,6 +104,7 @@ export function QuestionCard({
 
   function handleFocus() {
     if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+    isFocusedRef.current = true;
     setFocused(true);
     startEditing();
   }
@@ -112,10 +114,38 @@ export function QuestionCard({
     // Grace period so tabbing between the min/max inputs doesn't flicker
     // the "answering" indicator off and back on for teammates.
     blurTimerRef.current = setTimeout(() => {
+      isFocusedRef.current = false;
       setFocused(false);
       stopEditing();
     }, BLUR_GRACE_MS);
   }
+
+  // Backgrounded tabs shouldn't keep polling the presence endpoint - with
+  // 50-75 players in an event, every focused-but-hidden tab adds a heartbeat
+  // every HEARTBEAT_MS for no one to see. Pause the interval while hidden and
+  // resume (with an immediate ping) on return, provided the input is still
+  // focused. Presence naturally expires server-side (TTL in editing-presence.ts)
+  // if the tab stays hidden long enough, so teammates don't see a stale
+  // "still answering" indicator.
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        if (heartbeatRef.current) {
+          clearInterval(heartbeatRef.current);
+          heartbeatRef.current = undefined;
+        }
+        return;
+      }
+      if (!presence || !isFocusedRef.current || heartbeatRef.current) return;
+      const { eventId, teamId, currentUser } = presence;
+      postEditingPresence(eventId, teamId, question.id, true, currentUser);
+      heartbeatRef.current = setInterval(() => {
+        postEditingPresence(eventId, teamId, question.id, true, currentUser);
+      }, HEARTBEAT_MS);
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [presence, question.id]);
 
   useEffect(() => {
     return () => {

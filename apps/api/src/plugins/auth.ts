@@ -55,11 +55,7 @@ function extractToken(request: FastifyRequest): string | null {
 
 function payloadToUser(payload: SupabaseJWTPayload): AuthenticatedUser {
   const role = parseUserRole(payload.app_metadata?.role);
-  return {
-    id: payload.sub,
-    email: payload.email ?? null,
-    role,
-  };
+  return { id: payload.sub, email: payload.email ?? null, role };
 }
 
 export async function registerAuth(fastify: FastifyInstance) {
@@ -67,11 +63,7 @@ export async function registerAuth(fastify: FastifyInstance) {
   const jwks = supabaseUrl.length > 0 ? createRemoteJWKSet(supabaseJwksUrl(supabaseUrl)) : null;
   const issuer = supabaseUrl.length > 0 ? `${supabaseAuthBaseUrl(supabaseUrl)}/auth/v1` : null;
 
-  if (!jwks) {
-    fastify.log.warn(
-      "SUPABASE_URL is not set - all authenticated requests will be rejected. Set it in apps/api/.env.local."
-    );
-  }
+  if (!jwks) fastify.log.warn("SUPABASE_URL is not set");
 
   async function verify(request: FastifyRequest): Promise<AuthenticatedUser | null> {
     if (!jwks || !issuer) {
@@ -100,11 +92,7 @@ export async function registerAuth(fastify: FastifyInstance) {
       return payloadToUser(payload as SupabaseJWTPayload);
     } catch (err) {
       request.log.warn(
-        {
-          err: (err as Error).message,
-          issuer,
-          tokenPrefix: token.slice(0, 24),
-        },
+        { err: (err as Error).message, issuer, tokenPrefix: token.slice(0, 24) },
         "auth: jwt verification failed"
       );
       return null;
@@ -121,9 +109,7 @@ export async function registerAuth(fastify: FastifyInstance) {
   fastify.decorate(
     "requireAuth",
     async function (request: FastifyRequest, reply: FastifyReply) {
-      if (!request.user) {
-        await reply.code(401).send({ error: "Unauthenticated" });
-      }
+      if (!request.user) await reply.code(401).send({ error: "Unauthenticated" });
     }
   );
 
@@ -134,9 +120,8 @@ export async function registerAuth(fastify: FastifyInstance) {
         await reply.code(401).send({ error: "Unauthenticated" });
         return;
       }
-      if (!isStaffRole(request.user.role)) {
-        await reply.code(403).send({ error: "Forbidden" });
-      }
+
+      if (!isStaffRole(request.user.role)) await reply.code(403).send({ error: "Forbidden" });
     }
   );
 }

@@ -14,7 +14,6 @@ export function isStaffRole(role: UserRole): boolean {
 }
 
 export interface AuthenticatedUser {
-  /** Supabase auth.uid() */
   id: string;
   email: string | null;
   role: UserRole;

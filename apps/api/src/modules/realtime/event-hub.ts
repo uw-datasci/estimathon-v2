@@ -5,7 +5,7 @@ const HEARTBEAT_MS = 25_000;
 
 /**
  * In-memory pub/sub for SSE clients keyed by event id.
- * One hub per Fastify instance (see scaling note in project docs).
+ * One hub per Fastify instance.
  */
 export class EventHub {
   private readonly subscribers = new Map<string, Set<FastifyReply>>();
