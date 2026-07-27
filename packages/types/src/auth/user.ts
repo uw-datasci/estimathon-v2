@@ -1,8 +1,16 @@
-export type UserRole = "admin" | "exec" | "user";
+export type UserRole = "pres" | "admin" | "exec" | "member";
+
+const STAFF_ROLES = new Set<UserRole>(["pres", "admin", "exec"]);
+
+/** Map Supabase `app_metadata.role` to a known role; unknown values become `member`. */
+export function parseUserRole(raw: string | undefined): UserRole {
+  if (raw && isStaffRole(raw as UserRole)) return raw as UserRole;
+  return "member";
+}
 
 /** Roles that can access admin / staff-protected surfaces. */
 export function isStaffRole(role: UserRole): boolean {
-  return role === "admin" || role === "exec";
+  return STAFF_ROLES.has(role);
 }
 
 export interface AuthenticatedUser {

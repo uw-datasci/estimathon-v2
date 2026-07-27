@@ -11,7 +11,7 @@
  * Decorators:
  *   fastify.requireAuth   - preHandler that 401s on missing/invalid token
  *   fastify.requireAdmin  - preHandler that 401s without a token and 403s
- *                            unless `app_metadata.role` is `admin` or `exec`
+ *                            unless `app_metadata.role` is staff (`pres`, `admin`, or `exec`)
  *
  * Request augmentation:
  *   request.user          - { id, email, role } when a valid token is present
@@ -19,7 +19,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import type { JWTPayload } from "jose";
-import { isStaffRole, type AuthenticatedUser, type UserRole } from "@estimathon/types";
+import { isStaffRole, parseUserRole, type AuthenticatedUser } from "@estimathon/types";
 
 interface SupabaseJWTPayload extends JWTPayload {
   sub: string;
@@ -54,8 +54,7 @@ function extractToken(request: FastifyRequest): string | null {
 }
 
 function payloadToUser(payload: SupabaseJWTPayload): AuthenticatedUser {
-  const raw = payload.app_metadata?.role;
-  const role: UserRole = raw === "admin" || raw === "exec" ? raw : "user";
+  const role = parseUserRole(payload.app_metadata?.role);
   return {
     id: payload.sub,
     email: payload.email ?? null,
