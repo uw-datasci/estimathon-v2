@@ -120,8 +120,8 @@ importers:
         specifier: ^5.100.14
         version: 5.100.14(react@19.2.6)
       '@uw-datasci/raft':
-        specifier: ^1.0.0
-        version: 1.0.0(next@16.1.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))
+        specifier: ^1.0.1
+        version: 1.0.1(next@16.1.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))
       '@vercel/analytics':
         specifier: ^2.0.1
         version: 2.0.1(next@16.1.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
@@ -2645,8 +2645,8 @@ packages:
     resolution: {integrity: sha512-U3gxVaDVnuZKhSspW/MzMxE1kq7zOdc072FcSNoqA1I9p8HyKbBFfEHoWckBAMgNMph4MamwS5iTVzFmrnt8TQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@uw-datasci/raft@1.0.0':
-    resolution: {integrity: sha512-G4aHjfo7gJHq7wA4ce/uPPnl/EpFBV26M5l/TzatKHkj/O7xdeWFCmTXrrY99ojwJifANCKN5DeP/Y81nkLS2A==, tarball: https://npm.pkg.github.com/download/@uw-datasci/raft/1.0.0/dd914b0fe1b3189b2643727ab985da75b983f944}
+  '@uw-datasci/raft@1.0.1':
+    resolution: {integrity: sha512-lfO588eR41f3bOspMW2AB4+FyYfApr3nGN4H5JQ2iHHP1+j/jQlN65N4ME2coA6uWyC5kRq8Is+CBGMcUDSOfw==, tarball: https://npm.pkg.github.com/download/@uw-datasci/raft/1.0.1/61068670ab2fa9b5c5577420bcb860c293065aff}
     engines: {node: '>=20'}
     peerDependencies:
       next: ^16
@@ -7518,7 +7518,7 @@ snapshots:
       '@typescript-eslint/types': 8.59.4
       eslint-visitor-keys: 5.0.1
 
-  '@uw-datasci/raft@1.0.0(next@16.1.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))':
+  '@uw-datasci/raft@1.0.1(next@16.1.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6))':
     dependencies:
       next: 16.1.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       pg: 8.21.0
