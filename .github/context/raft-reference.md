@@ -1,6 +1,6 @@
 # The Raft (`@uw-datasci/raft`) - LLM Blueprint
 
-> **Audience:** AI coding assistants (Cursor, GitHub Copilot, Continue) and the
+> **Audience:** AI coding assistants (Cursor, GitHub Copilot, Claude Code, etc.) and the
 > engineers using them inside UWDSC Next.js 16 apps. This file is the single
 > source of truth for how to consume the Raft SDK. It is synced automatically
 > into every consumer repo at `.github/context/raft-reference.md`.
