@@ -1,17 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { HttpError } from "../events/events.service";
+import { handle } from "../../utils/http";
 import { LeaderboardService } from "./leaderboard.service";
-
-async function handle<T>(reply: FastifyReply, fn: () => Promise<T>) {
-  try {
-    return reply.send(await fn());
-  } catch (err) {
-    if (err instanceof HttpError) {
-      return reply.code(err.statusCode).send({ error: err.message });
-    }
-    throw err;
-  }
-}
 
 export class LeaderboardController {
   constructor(private readonly service: LeaderboardService) {

@@ -1,19 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { TeamsService } from "./teams.service";
-import { HttpError } from "../events/events.service";
+import { handle } from "../../utils/http";
 import type { CreateTeamInput } from "./teams.types";
-
-async function handle<T>(reply: FastifyReply, fn: () => Promise<T>, okCode = 200) {
-  try {
-    const result = await fn();
-    return reply.code(okCode).send(result);
-  } catch (err) {
-    if (err instanceof HttpError) {
-      return reply.code(err.statusCode).send({ error: err.message });
-    }
-    throw err;
-  }
-}
 
 export class TeamsController {
   constructor(private readonly service: TeamsService) {
